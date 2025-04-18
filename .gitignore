@@ -1,0 +1,25 @@
+# WordPress specific
+wp-config.php
+wp-content/cache/
+wp-content/uploads/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+vendor/
+composer.lock
+package-lock.json
+
+# Build files
+*.zip
+*.tar.gz
+
+# Environment files
+.env
+*.log
