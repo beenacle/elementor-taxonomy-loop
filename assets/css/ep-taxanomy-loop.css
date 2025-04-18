@@ -1,24 +1,28 @@
-.ep-posts-list {
+.elementor-widget-ep_taxanomy_loop .elementor-widget-container .ep-posts-list {
   display: grid;
   --grid-columns: 3;
   grid-template-columns: repeat(var(--grid-columns), 1fr);
   gap: 20px;
   margin-top: 10px;
 }
+
 .elementor-widget-ep_taxanomy_loop .elementor-widget-container {
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  h2 {
-    margin: 0;
-  }
-  .ep-term-content {
-    position: relative;
-  }
-  .ep-term-content .ep-divider {
-    box-sizing: none;
-    border: none;
-    background-color: #000;
-  }
+}
+
+.elementor-widget-ep_taxanomy_loop .elementor-widget-container h2 {
+  margin: 0;
+}
+
+.elementor-widget-ep_taxanomy_loop .elementor-widget-container .ep-term-content {
+  position: relative;
+}
+
+.elementor-widget-ep_taxanomy_loop .elementor-widget-container .ep-term-content .ep-divider {
+  box-sizing: border-box;
+  border: none;
+  background-color: #000;
 }
