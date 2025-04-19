@@ -364,7 +364,7 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_responsive_control(
       'column_gap',
       [
-        'label' => esc_html__('Columns Gap', 'elementor-pro'),
+        'label' => esc_html__('Columns Gap', 'executive-elementor-addons'),
         'type' => \Elementor\Controls_Manager::SLIDER,
         'size_units' => ['px', 'em', 'rem', 'custom'],
         'range' => [
@@ -503,19 +503,19 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'divider_alignment',
       [
-        'label' => esc_html__('Alignment', 'textdomain'),
+        'label' => esc_html__('Alignment', 'executive-elementor-addons'),
         'type' => \Elementor\Controls_Manager::CHOOSE,
         'options' => [
           'margin-right: auto;' => [
-            'title' => esc_html__('Left', 'textdomain'),
+            'title' => esc_html__('Left', 'executive-elementor-addons'),
             'icon' => 'eicon-text-align-left',
           ],
           'margin:auto;' => [
-            'title' => esc_html__('Center', 'textdomain'),
+            'title' => esc_html__('Center', 'executive-elementor-addons'),
             'icon' => 'eicon-text-align-center',
           ],
           'margin-left: auto;' => [
-            'title' => esc_html__('Right', 'textdomain'),
+            'title' => esc_html__('Right', 'executive-elementor-addons'),
             'icon' => 'eicon-text-align-right',
           ],
         ],
