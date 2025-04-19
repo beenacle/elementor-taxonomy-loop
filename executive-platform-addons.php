@@ -26,18 +26,20 @@ function executive_platform_elementor_widgets($widgets_manager)
 add_action('elementor/widgets/register', 'executive_platform_elementor_widgets');
 
 
-//Register scripts and styles for widgets....
-
-function executive_platform_widgets_dependencies()
-{
+//Register scripts for widgets....
+function executive_platform_widgets_scripts() {
   /* Scripts */
-  // wp_register_script('ep-taxanomy-loop-script', plugins_url('assets/js/ep-taxanomy-loop.js', __FILE__), ['jquery', 'elementor-frontend'], '1.0.0', true);
+  wp_register_script('ep-taxanomy-loop-script', plugins_url('assets/js/ep-taxanomy-loop.js', __FILE__), ['jquery', 'elementor-frontend'], '1.0.0', true);
   // ✅ Enqueue the Script
-  // wp_enqueue_script('ep-taxanomy-loop-script');
+  wp_enqueue_script('ep-taxanomy-loop-script');
+}
+add_action('elementor/frontend/after_enqueue_scripts', 'executive_platform_widgets_scripts');
 
+//Register styles for widgets....
+function executive_platform_widgets_styles() {
   /* Styles */
   wp_register_style('ep-taxanomy-loop-style', plugins_url('assets/css/ep-taxanomy-loop.css', __FILE__));
   // ✅ Enqueue the style
   wp_enqueue_style('ep-taxanomy-loop-style');
 }
-add_action('elementor/frontend/before_enqueue_styles', 'executive_platform_widgets_dependencies');
+add_action('elementor/frontend/before_enqueue_styles', 'executive_platform_widgets_styles');
