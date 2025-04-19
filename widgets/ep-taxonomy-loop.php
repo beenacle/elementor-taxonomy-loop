@@ -556,7 +556,6 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
     $post_type = $settings['post_type'];
     $skin = $settings['loop_skin'];
     $divider = $settings['loop_divider'];
-    $loopgap = $settings['loop_gap'];
 
 
     // Fetch terms for the specified taxonomy
