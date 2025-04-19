@@ -349,6 +349,7 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
       [
         'label' => esc_html__('Loop Columns', 'executive-elementor-addons'),
         'type' => \Elementor\Controls_Manager::NUMBER,
+        'devices' => ['desktop', 'tablet', 'mobile'],
         'default' => '3',
         'tablet_default' => '2',
         'mobile_default' => '1',
@@ -595,6 +596,8 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
               'post_query_posts_ids' => $post_ids_array,
               // Layout controls
               'columns' => $settings['columns'] ?? 3,
+              "columns_tablet" => $settings['columns_tablet'] ?? 2,
+              "columns_mobile" => $settings['columns_mobile'] ?? 1,
               'equal_height' => $settings['equal_height'] ?? 'no',
               'column_gap' => $loopgap,
               'row_gap' => $loopgap,
