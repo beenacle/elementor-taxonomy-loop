@@ -17,4 +17,7 @@
     border: none;
     background-color: #000;
   }
+  .ep-not-found {
+    margin: 0;
+  }
 }

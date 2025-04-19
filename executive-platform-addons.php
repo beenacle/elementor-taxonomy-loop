@@ -27,7 +27,8 @@ add_action('elementor/widgets/register', 'executive_platform_elementor_widgets')
 
 
 //Register scripts for widgets....
-function executive_platform_widgets_scripts() {
+function executive_platform_widgets_scripts()
+{
   /* Scripts */
   wp_register_script('ep-taxonomy-loop-script', plugins_url('assets/js/ep-taxonomy-loop.js', __FILE__), ['jquery', 'elementor-frontend'], '1.0.0', true);
   // ✅ Enqueue the Script
@@ -36,7 +37,8 @@ function executive_platform_widgets_scripts() {
 add_action('elementor/frontend/after_enqueue_scripts', 'executive_platform_widgets_scripts');
 
 //Register styles for widgets....
-function executive_platform_widgets_styles() {
+function executive_platform_widgets_styles()
+{
   /* Styles */
   wp_register_style('ep-taxonomy-loop-style', plugins_url('assets/css/ep-taxonomy-loop.css', __FILE__));
   // ✅ Enqueue the style

@@ -125,8 +125,8 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
         'type' => \Elementor\Controls_Manager::SWITCHER,
         'label_on' => esc_html__('Yes', 'executive-elementor-addons'),
         'label_off' => esc_html__('No', 'executive-elementor-addons'),
-        'return_value' => true,
-        'default' => false,
+        'return_value' => 'yes',
+        'default' => 'no',
       ]
     );
     $this->add_control(
@@ -424,6 +424,24 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
         ],
       ]
     );
+    $this->add_group_control(
+      \Elementor\Group_Control_Typography::get_type(),
+      [
+        'label' => esc_html__('Not Found', 'executive-elementor-addons'),
+        'name' => 'not_found_typography',
+        'selector' => '{{WRAPPER}} .ep-taxonomy-posts .ep-not-found',
+      ]
+    );
+    $this->add_control(
+      'message_color',
+      [
+        'label' => esc_html__('Not Found Color', 'executive-elementor-addons'),
+        'type' => \Elementor\Controls_Manager::COLOR,
+        'selectors' => [
+          '{{WRAPPER}} .ep-taxonomy-posts .ep-not-found' => 'color: {{VALUE}}',
+        ],
+      ]
+    );
     $this->end_controls_section();
     $this->start_controls_section(
       'ep_loop_divider_style',
@@ -544,7 +562,7 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
     // Fetch terms for the specified taxonomy
     $terms = get_terms([
       'taxonomy'   => $taxonomy,
-      'hide_empty' => $settings['show_empty'],
+      'hide_empty' => (isset($settings['show_empty']) && 'yes' === $settings['show_empty']) ? true : false,
       'include'    => $settings['include_terms'],
       'exclude'    => $settings['exclude_terms'],
       'orderby'    => $settings['orderby'],
@@ -575,39 +593,41 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
         ]);
 
         $post_ids_array = wp_list_pluck($posts->posts, 'ID');
+        //Start of Loop Grid
+        echo '<div class="ep-posts-list">';
+        if (count($post_ids_array) > 0) {
+          //Generate Loop Grid for the current term
+          $loop_builder_module = ProPlugin::instance()->modules_manager->get_modules('loop-builder');
+          if (! $loop_builder_module || ! $loop_builder_module->is_active()) {
+            echo '<p>Loop Builder module not available.</p>';
+            return;
+          }
 
-        //Generate Loop Grid for the current term
-        $loop_builder_module = ProPlugin::instance()->modules_manager->get_modules('loop-builder');
-        if (! $loop_builder_module || ! $loop_builder_module->is_active()) {
-          echo '<p>Loop Builder module not available.</p>';
-          return;
+          // Proceed if loop template is valid
+          if (! empty($skin) && get_post_type($skin) === 'elementor_library') {
+
+            $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
+              'id' => 'loop-grid-' . $term->term_id,
+              'elType' => 'widget',
+              'widgetType' => 'loop-grid',
+              'settings' => [
+                'template_id' => $skin,
+                'post_query_post_type' => 'by_id',
+                'post_query_posts_ids' => $post_ids_array,
+                // Layout controls
+                'columns' => $settings['columns'] ?? 3,
+                "columns_tablet" => $settings['columns_tablet'] ?? 2,
+                "columns_mobile" => $settings['columns_mobile'] ?? 1,
+                'equal_height' => $settings['equal_height'] ?? 'no',
+              ],
+            ], []);
+
+            $loop_grid->print_element();
+          }
+        } else {
+          echo '<p class="ep-not-found">No posts found for this term.</p>';
         }
-
-        // Proceed if loop template is valid
-        if (! empty($skin) && get_post_type($skin) === 'elementor_library') {
-
-          $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
-            'id' => 'loop-grid-' . $term->term_id,
-            'elType' => 'widget',
-            'widgetType' => 'loop-grid',
-            'settings' => [
-              'template_id' => $skin,
-              'post_query_post_type' => 'by_id',
-              'post_query_posts_ids' => $post_ids_array,
-              // Layout controls
-              'columns' => $settings['columns'] ?? 3,
-              "columns_tablet" => $settings['columns_tablet'] ?? 2,
-              "columns_mobile" => $settings['columns_mobile'] ?? 1,
-              'equal_height' => $settings['equal_height'] ?? 'no',
-              'column_gap' => $loopgap,
-              'row_gap' => $loopgap,
-            ],
-          ], []);
-
-          echo '<div class="ep-posts-list">';
-          $loop_grid->print_element();
-          echo '</div>';
-        }
+        echo '</div>';
         //End of Loop Grid
         echo '</div>';
       }
