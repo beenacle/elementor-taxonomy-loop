@@ -4,14 +4,11 @@ if (! defined('ABSPATH')) {
 }
 
 use ElementorPro\Plugin as ProPlugin;
-use ElementorPro\Plugin;
+use Elementor\Plugin as Elementor;
 use ElementorPro\Core\Utils as Pro_Utils;
-use Elementor\Core\Base\Document;
 use ElementorPro\Modules\QueryControl\Controls\Template_Query;
 use ElementorPro\Modules\QueryControl\Module as QueryControlModule;
 use ElementorPro\Modules\LoopBuilder\Documents\Loop as LoopDocument;
-use ElementorPro\Modules\LoopBuilder\Module as LoopBuilderModule;
-use ElementorPro\Modules\Woocommerce\Module as WoocommerceModule;
 
 class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
 {
@@ -357,25 +354,72 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
         'mobile_default' => '1',
         'min' => 1,
         'max' => 12,
-        'prefix_class' => 'elementor-grid%s-',
         'frontend_available' => true,
         'separator' => 'before',
         'condition' => [
           'loop_skin!' => '',
         ],
+      ]
+    );
+    $this->add_responsive_control(
+      'column_gap',
+      [
+        'label' => esc_html__('Columns Gap', 'elementor-pro'),
+        'type' => \Elementor\Controls_Manager::SLIDER,
+        'size_units' => ['px', 'em', 'rem', 'custom'],
+        'range' => [
+          'px' => [
+            'max' => 100,
+          ],
+          'em' => [
+            'max' => 10,
+          ],
+          'rem' => [
+            'max' => 10,
+          ],
+        ],
         'selectors' => [
-          '{{WRAPPER}} .ep-posts-list' => '--grid-columns: {{VALUE}}; grid-template-columns: repeat(var(--grid-columns), 1fr);',
+          '{{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid' => '--grid-column-gap: {{SIZE}}{{UNIT}}',
         ],
       ]
     );
     $this->add_responsive_control(
-      'loop_gap',
+      'row_gap',
       [
-        'label' => esc_html__('Loop Items Gap', 'executive-elementor-addons'),
+        'label' => esc_html__('Row Gap', 'executive-elementor-addons'),
         'type' => \Elementor\Controls_Manager::SLIDER,
         'size_units' => ['px', 'em', 'rem', 'custom'],
+        'range' => [
+          'px' => [
+            'max' => 100,
+          ],
+          'em' => [
+            'max' => 10,
+          ],
+          'rem' => [
+            'max' => 10,
+          ],
+        ],
+        'frontend_available' => true,
         'selectors' => [
-          '{{WRAPPER}} .elementor-widget-container .ep-posts-list' => 'gap: {{SIZE}}{{UNIT}};',
+          '{{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid' => '--grid-row-gap: {{SIZE}}{{UNIT}}',
+        ],
+      ]
+    );
+    $this->add_control(
+      'equal_height',
+      [
+        'label' => esc_html__('Equal height', 'executive-elementor-addons'),
+        'type' => \Elementor\Controls_Manager::SWITCHER,
+        'label_off' => esc_html__('Off', 'executive-elementor-addons'),
+        'label_on' => esc_html__('On', 'executive-elementor-addons'),
+        'selectors' => [
+          '{{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .elementor-loop-container' => 'grid-auto-rows: 1fr',
+          // `.elementor-section-wrap` exists only when editing the loop template.
+          '{{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .elementor-section,
+           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .elementor-section > .elementor-container, 
+           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .e-con, 
+           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item .elementor-section-wrap  > .e-con' => 'height: 100%',
         ],
       ]
     );
@@ -387,6 +431,10 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
         'tab' => \Elementor\Controls_Manager::TAB_STYLE,
         'condition' => [
           'loop_divider' => 'yes',
+        ],
+        'selectors' => [
+          '{{WRAPPER}} .elementor-widget-container .elementor-loop-container ' => '--grid-column-gap: {{SIZE}}{{UNIT}};',
+
         ],
       ]
     );
@@ -483,18 +531,15 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
 
   protected function render(): void
   {
+
     $settings = $this->get_settings_for_display();
     $taxonomy = $settings['taxanomy'];
     $post_type = $settings['post_type'];
     $skin = $settings['loop_skin'];
     $divider = $settings['loop_divider'];
+    $loopgap = $settings['loop_gap'];
 
 
-
-    $css_file = new \Elementor\Core\Files\CSS\Post($skin);
-    // echo '<pre>';
-    // // print_r($css_file->get_url());
-    // echo '</pre>';
     // Fetch terms for the specified taxonomy
     $terms = get_terms([
       'taxonomy'   => $taxonomy,
@@ -514,6 +559,7 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
           echo '<hr class="ep-divider" />';
         }
         echo '</div>';
+
         // Query posts for the current term
         $posts = new \WP_Query([
           'post_type'      => $post_type,
@@ -527,52 +573,43 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
           ],
         ]);
 
-        if ($posts->have_posts()) {
-          echo '<div class="ep-posts-list">';
-          while ($posts->have_posts()) {
-            $posts->the_post();
-            $post_id = get_the_ID();
-            $unique_id = 'offcanvas-' . $post_id;
-            $action_url = Plugin::elementor()->frontend->create_action_hash('off_canvas:toggle', [
-              'id' => $unique_id,
-              'displayMode' => 'toggle',
-            ]);
+        $post_ids_array = wp_list_pluck($posts->posts, 'ID');
 
-            $data_settings = [
-              'uniqueid' => $unique_id,
-              'actionlink' => $action_url,
-            ];
-
-            echo '<div class="elementor-element elementor-widget elementor-widget-ep-taxnomy-post" 
-            data-element_type="widget" 
-            data-widget_type="ep-taxanomy-loop-item.default" 
-            data-settings=\'' . json_encode($data_settings) . '\'>';
-            $this->render_template($skin);
-            echo '</div>';
-          }
-          echo '</div>';
-          wp_reset_postdata();
-        } else {
-          echo '<p>No posts in this term.</p>';
+        //Generate Loop Grid for the current term
+        $loop_builder_module = ProPlugin::instance()->modules_manager->get_modules('loop-builder');
+        if (! $loop_builder_module || ! $loop_builder_module->is_active()) {
+          echo '<p>Loop Builder module not available.</p>';
+          return;
         }
 
+        // Proceed if loop template is valid
+        if (! empty($skin) && get_post_type($skin) === 'elementor_library') {
+
+          $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
+            'id' => 'loop-grid-' . $term->term_id,
+            'elType' => 'widget',
+            'widgetType' => 'loop-grid',
+            'settings' => [
+              'template_id' => $skin,
+              'post_query_post_type' => 'by_id',
+              'post_query_posts_ids' => $post_ids_array,
+              // Layout controls
+              'columns' => $settings['columns'] ?? 3,
+              'equal_height' => $settings['equal_height'] ?? 'no',
+              'column_gap' => $loopgap,
+              'row_gap' => $loopgap,
+            ],
+          ], []);
+
+          echo '<div class="ep-posts-list">';
+          $loop_grid->print_element();
+          echo '</div>';
+        }
+        //End of Loop Grid
         echo '</div>';
       }
     } else {
       echo '<p>No terms found for this taxonomy.</p>';
     }
-  }
-
-  protected function render_template($template_id)
-  {
-    if (!$template_id) {
-      return;
-    }
-    // Ensure the CSS for the template is loaded
-    $css_file = new \Elementor\Core\Files\CSS\Post($template_id);
-    $css_file->enqueue();
-
-    // Render the template content
-    echo ProPlugin::elementor()->frontend->get_builder_content($template_id, true);
   }
 }
