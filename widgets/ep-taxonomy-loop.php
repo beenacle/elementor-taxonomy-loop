@@ -329,7 +329,7 @@ class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
             'icon' => 'eicon-text-align-right',
           ],
         ],
-        'default' => 'margin-right: auto;',
+        'default' => 'left',
         'toggle' => true,
         'selectors' => [
           '{{WRAPPER}} .ep-term-content .ep-term-title' => 'text-align: {{VALUE}};',
