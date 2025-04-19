@@ -10,17 +10,17 @@ use ElementorPro\Modules\QueryControl\Controls\Template_Query;
 use ElementorPro\Modules\QueryControl\Module as QueryControlModule;
 use ElementorPro\Modules\LoopBuilder\Documents\Loop as LoopDocument;
 
-class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
+class Ep_Taxonomy_Loop extends \Elementor\Widget_Base
 {
 
   public function get_name(): string
   {
-    return 'ep_taxanomy_loop';
+    return 'ep_taxonomy_loop';
   }
 
   public function get_title(): string
   {
-    return esc_html__('EP Taxanomy Loop', 'unqork-elementor-addon');
+    return esc_html__('EP Taxonomy Loop', 'executive-elementor-addons');
   }
 
   public function get_icon(): string
@@ -35,17 +35,17 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
 
   public function get_keywords(): array
   {
-    return ['loop', 'executive', 'taxanomy', 'post', 'custom'];
+    return ['loop', 'executive', 'taxonomy', 'post', 'custom'];
   }
 
   public function get_script_depends(): array
   {
-    return ['ep-taxanomy-loop-script'];
+    return ['ep-taxonomy-loop-script'];
   }
 
   public function get_style_depends(): array
   {
-    return ['ep-taxanomy-loop-style', 'elementor-pro'];
+    return ['ep-taxonomy-loop-style', 'elementor-pro'];
   }
 
   // Register Controls
@@ -84,9 +84,9 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
       ]
     );
     $this->add_control(
-      'taxanomy',
+      'taxonomy',
       [
-        'label' => __('Select Taxanomy', 'executive-elementor-addons'),
+        'label' => __('Select Taxonomy', 'executive-elementor-addons'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'options' => $supported_taxonomies,
         'default' => 'category',
@@ -417,8 +417,8 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
           '{{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .elementor-loop-container' => 'grid-auto-rows: 1fr',
           // `.elementor-section-wrap` exists only when editing the loop template.
           '{{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .elementor-section,
-           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .elementor-section > .elementor-container, 
-           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .e-con, 
+           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .elementor-section > .elementor-container,
+           {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item > .e-con,
            {{WRAPPER}} .ep-posts-list .elementor-widget-loop-grid .e-loop-item .elementor-section-wrap  > .e-con' => 'height: 100%',
         ],
       ]
@@ -533,7 +533,7 @@ class Ep_Taxanomy_Loop extends \Elementor\Widget_Base
   {
 
     $settings = $this->get_settings_for_display();
-    $taxonomy = $settings['taxanomy'];
+    $taxonomy = $settings['taxonomy'];
     $post_type = $settings['post_type'];
     $skin = $settings['loop_skin'];
     $divider = $settings['loop_divider'];
