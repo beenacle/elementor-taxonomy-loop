@@ -643,10 +643,10 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
         echo '<div class="taxonomy-posts taxonomy-posts-' . esc_attr($term->term_id) . '">';
         echo '<div class="term-content">';
         echo '<h2 class="term-title">' .
-             esc_html($title_prefix) .
-             esc_html($term->name) .
-             esc_html($title_suffix) .
-             '</h2>';
+          esc_html($title_prefix) .
+          esc_html($term->name) .
+          esc_html($title_suffix) .
+          '</h2>';
         if ($divider == 'yes') {
           echo '<hr class="divider" />';
         }
@@ -656,8 +656,6 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
         $posts = new \WP_Query([
           'post_type'      => $post_type,
           'posts_per_page' => -1,
-          'orderby'        => $settings['post_orderby'],
-          'order'          => $settings['post_order'],
           'tax_query'      => [
             [
               'taxonomy' => $taxonomy,
@@ -690,6 +688,8 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
                   'template_id' => $skin,
                   'post_query_post_type' => 'by_id',
                   'post_query_posts_ids' => $post_ids_array,
+                  "post_query_orderby" => $settings['post_orderby'] ?? 'date',
+                  "post_query_order" => $settings['post_order'] ?? 'DESC',
                   'columns' => $settings['columns'] ?? 3,
                   "columns_tablet" => $settings['columns_tablet'] ?? 2,
                   "columns_mobile" => $settings['columns_mobile'] ?? 1,
