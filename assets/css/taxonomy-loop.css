@@ -1,0 +1,41 @@
+.posts-list {
+  margin-top: 10px;
+}
+
+.elementor-widget-taxonomy_loop {
+  .elementor-widget-container {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    h2 {
+      margin: 0;
+    }
+
+    .term-content {
+      position: relative;
+
+      .divider {
+        box-sizing: border-box;
+        border: none;
+        background-color: #000;
+      }
+    }
+
+    .error-message,
+    .not-found {
+      margin: 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      color: #6c757d;
+    }
+
+    .error-message {
+      color: #dc3545;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+  }
+}
