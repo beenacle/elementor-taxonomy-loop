@@ -1,16 +1,16 @@
-# Executive Platform Addons
+# Elementor Taxonomy Loop Widget
 
-A WordPress plugin that extends Elementor with custom widgets specifically designed for Executive Platform websites.
+A WordPress plugin that extends Elementor with a powerful taxonomy loop widget for displaying and organizing content based on taxonomies.
 
 ## Description
 
-Executive Platform Addons is a WordPress plugin that adds custom Elementor widgets to enhance the functionality of Executive Platform websites. The plugin currently provides a powerful Taxonomy Loop widget that allows you to display and organize content based on taxonomies in a customizable way.
+Elementor Taxonomy Loop Widget is a WordPress plugin that adds a custom Elementor widget to enhance your website's content organization. The plugin provides a powerful Taxonomy Loop widget that allows you to display and organize content based on taxonomies in a customizable way.
 
 ## Features
 
-### EP Taxonomy Loop Widget
+### Taxonomy Loop Widget
 
-The EP Taxonomy Loop widget allows you to:
+The Taxonomy Loop widget allows you to:
 - Display content organized by taxonomies (categories, tags, or custom taxonomies)
 - Customize the display of taxonomy terms and their associated posts
 - Control the ordering and filtering of terms
@@ -32,10 +32,10 @@ The EP Taxonomy Loop widget allows you to:
 
 ## Usage
 
-### EP Taxonomy Loop Widget
+### Taxonomy Loop Widget
 
 1. Edit a page or post with Elementor
-2. Search for "EP Taxonomy Loop" in the widget panel
+2. Search for "Taxonomy Loop" in the widget panel
 3. Drag and drop the widget into your layout
 4. Configure the widget settings:
    - Select the post type
@@ -66,11 +66,11 @@ The EP Taxonomy Loop widget allows you to:
 
 ## Support
 
-For support, feature requests, or bug reports, please contact Beenacle Technologies.
+For support, feature requests, or bug reports, please contact Beenacle Technologies at https://beenacle.com
 
 ## Credits
 
-Developed by Beenacle Technologies - Mohsin Shakeel
+Developed by Beenacle Technologies
 
 ## License
 
