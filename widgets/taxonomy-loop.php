@@ -688,6 +688,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
                   'template_id' => $skin,
                   'post_query_post_type' => 'by_id',
                   'post_query_posts_ids' => $post_ids_array,
+                  "posts_per_page" => count($post_ids_array),
                   "post_query_orderby" => $settings['post_orderby'] ?? 'date',
                   "post_query_order" => $settings['post_order'] ?? 'DESC',
                   'columns' => $settings['columns'] ?? 3,

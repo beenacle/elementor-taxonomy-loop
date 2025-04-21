@@ -66,12 +66,28 @@ The Taxonomy Loop widget allows you to:
 
 ## Support
 
-For support, feature requests, or bug reports, please contact Beenacle Technologies at https://beenacle.com
+For support, feature requests, or bug reports, please visit our [contact page](https://beenacle.com/contact-us/).
+
+## Changelog
+
+### 1.0.0
+* Initial release
+
+## License
+
+Elementor Taxonomy Loop Widget is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+any later version.
+
+Elementor Taxonomy Loop Widget is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Elementor Taxonomy Loop Widget. If not, see [GNU GPL v2 or later](https://www.gnu.org/licenses/gpl-2.0.html).
 
 ## Credits
 
 Developed by Beenacle Technologies
-
-## License
-
-This plugin is proprietary software. All rights reserved.
