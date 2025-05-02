@@ -399,7 +399,6 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
       [
         'label' => esc_html__('Loop Columns', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::NUMBER,
-        'devices' => ['desktop', 'tablet', 'mobile'],
         'default' => '3',
         'tablet_default' => '2',
         'mobile_default' => '1',
