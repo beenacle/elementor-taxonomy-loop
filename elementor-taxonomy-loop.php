@@ -37,34 +37,32 @@ function elementor_taxonomy_loop_widgets($widgets_manager)
 add_action('elementor/widgets/register', 'elementor_taxonomy_loop_widgets');
 
 //Register scripts for widgets....
-function elementor_taxonomy_loop_widgets_scripts()
-{
-    $script_path = ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/js/taxonomy-loop.js';
-    if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/js/taxonomy-loop.js')) {
-        wp_register_script(
-            'taxonomy-loop-script',
-            $script_path,
-            ['jquery', 'elementor-frontend'],
-            ELEMENTOR_TAXONOMY_LOOP_VERSION,
-            true
-        );
-        wp_enqueue_script('taxonomy-loop-script');
-    }
-}
-add_action('elementor/frontend/after_enqueue_scripts', 'elementor_taxonomy_loop_widgets_scripts');
+// function elementor_taxonomy_loop_widgets_scripts()
+// {
+//     $script_path = ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/js/taxonomy-loop.js';
+//     if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/js/taxonomy-loop.js')) {
+//         wp_register_script(
+//             'taxonomy-loop-script',
+//             $script_path,
+//             ['jquery', 'elementor-frontend'],
+//             ELEMENTOR_TAXONOMY_LOOP_VERSION,
+//             true
+//         );
+//         wp_enqueue_script('taxonomy-loop-script');
+//     }
+// }
+// add_action('elementor/frontend/after_enqueue_scripts', 'elementor_taxonomy_loop_widgets_scripts');
 
-//Register styles for widgets....
+// Register styles for widgets. Elementor will enqueue them via get_style_depends().
 function elementor_taxonomy_loop_widgets_styles()
 {
-    $style_path = ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/css/taxonomy-loop.css';
     if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/css/taxonomy-loop.css')) {
         wp_register_style(
             'taxonomy-loop-style',
-            $style_path,
+            ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/css/taxonomy-loop.css',
             [],
             ELEMENTOR_TAXONOMY_LOOP_VERSION
         );
-        wp_enqueue_style('taxonomy-loop-style');
     }
 }
-add_action('elementor/frontend/before_enqueue_styles', 'elementor_taxonomy_loop_widgets_styles');
+add_action('elementor/frontend/after_register_styles', 'elementor_taxonomy_loop_widgets_styles');

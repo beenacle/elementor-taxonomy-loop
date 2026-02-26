@@ -12,6 +12,17 @@ use ElementorPro\Modules\LoopBuilder\Documents\Loop as LoopDocument;
 
 class Taxonomy_Loop extends \Elementor\Widget_Base
 {
+  private function parse_term_ids($value): array
+  {
+    if (!is_string($value) || trim($value) === '') {
+      return [];
+    }
+
+    $parts = preg_split('/[\s,]+/', $value);
+    $ids = array_filter(array_map('absint', $parts));
+
+    return array_values(array_unique($ids));
+  }
 
   public function get_name(): string
   {
@@ -40,7 +51,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
 
   public function get_script_depends(): array
   {
-    return ['taxonomy-loop-script'];
+    return []; // ['taxonomy-loop-script']; // Commented out since JS file is empty
   }
 
   public function get_style_depends(): array
@@ -213,6 +224,17 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
           'ASC' => __('Ascending', 'elementor-taxonomy-loop'),
           'DESC' => __('Descending', 'elementor-taxonomy-loop'),
         ],
+      ]
+    );
+    $this->add_control(
+      'posts_per_term',
+      [
+        'label' => __('Posts Per Term', 'elementor-taxonomy-loop'),
+        'type' => \Elementor\Controls_Manager::NUMBER,
+        'default' => -1,
+        'min' => -1,
+        'step' => 1,
+        'description' => __('Set -1 to show all posts.', 'elementor-taxonomy-loop'),
       ]
     );
 
@@ -600,42 +622,45 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
   protected function render(): void
   {
     $settings = $this->get_settings_for_display();
-    $taxonomy = $settings['taxonomy'];
-    $post_type = $settings['post_type'];
-    $skin = $settings['loop_skin'];
-    $divider = $settings['loop_divider'];
-    $title_prefix = $settings['title_prefix'];
-    $title_suffix = $settings['title_suffix'];
+    $taxonomy = $settings['taxonomy'] ?? '';
+    $post_type = $settings['post_type'] ?? '';
+    $skin = $settings['loop_skin'] ?? '';
+    $divider = $settings['loop_divider'] ?? '';
+    $title_prefix = $settings['title_prefix'] ?? '';
+    $title_suffix = $settings['title_suffix'] ?? '';
 
-    // Generate cache key based on settings
-    $cache_key = 'elementor_taxonomy_loop_' . md5(serialize([
-      'taxonomy' => $taxonomy,
-      'post_type' => $post_type,
-      'show_empty' => $settings['show_empty'],
-      'include_terms' => $settings['include_terms'],
-      'exclude_terms' => $settings['exclude_terms'],
-      'orderby' => $settings['orderby'],
-      'order' => $settings['order']
-    ]));
-
-    // Try to get cached terms
-    $terms = get_transient($cache_key);
-
-    if (false === $terms) {
-      // Fetch terms for the specified taxonomy
-      $terms = get_terms([
-        'taxonomy'   => $taxonomy,
-        'hide_empty' => (isset($settings['show_empty']) && 'yes' === $settings['show_empty']) ? true : false,
-        'include'    => $settings['include_terms'],
-        'exclude'    => $settings['exclude_terms'],
-        'orderby'    => $settings['orderby'],
-        'order'      => $settings['order'],
-      ]);
-
-      if (!is_wp_error($terms)) {
-        set_transient($cache_key, $terms, HOUR_IN_SECONDS);
-      }
+    if (empty($taxonomy) || !taxonomy_exists($taxonomy)) {
+      echo '<p class="error-message">' . esc_html__('Invalid taxonomy selected.', 'elementor-taxonomy-loop') . '</p>';
+      return;
     }
+
+    if (empty($post_type) || !post_type_exists($post_type)) {
+      echo '<p class="error-message">' . esc_html__('Invalid post type selected.', 'elementor-taxonomy-loop') . '</p>';
+      return;
+    }
+
+    $include_terms = $this->parse_term_ids($settings['include_terms'] ?? '');
+    $exclude_terms = $this->parse_term_ids($settings['exclude_terms'] ?? '');
+    $posts_per_term = isset($settings['posts_per_term']) ? (int) $settings['posts_per_term'] : -1;
+    if ($posts_per_term === 0 || $posts_per_term < -1) {
+      $posts_per_term = -1;
+    }
+
+    // Fetch terms for the specified taxonomy
+    // WordPress already caches get_terms() internally, so no need for transient cache
+    $terms_args = [
+      'taxonomy'   => $taxonomy,
+      'hide_empty' => (isset($settings['show_empty']) && 'yes' === $settings['show_empty']) ? true : false,
+      'orderby'    => $settings['orderby'],
+      'order'      => $settings['order'],
+    ];
+    if (!empty($include_terms)) {
+      $terms_args['include'] = $include_terms;
+    }
+    if (!empty($exclude_terms)) {
+      $terms_args['exclude'] = $exclude_terms;
+    }
+    $terms = get_terms($terms_args);
 
     if (!empty($terms) && !is_wp_error($terms)) {
       foreach ($terms as $term) {
@@ -652,9 +677,9 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
         echo '</div>';
 
         // Query posts for the current term
-        $posts = new \WP_Query([
+        $post_ids_array = get_posts([
           'post_type'      => $post_type,
-          'posts_per_page' => -1,
+          'posts_per_page' => $posts_per_term,
           'tax_query'      => [
             [
               'taxonomy' => $taxonomy,
@@ -662,18 +687,23 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
               'terms'    => $term->term_id,
             ],
           ],
+          'orderby' => $settings['post_orderby'] ?? 'date',
+          'order' => $settings['post_order'] ?? 'DESC',
+          'fields' => 'ids',
           'no_found_rows' => true, // Optimize query by not counting rows
-          'cache_results' => true, // Enable query caching
+          'update_post_meta_cache' => false,
+          'update_post_term_cache' => false,
         ]);
 
-        $post_ids_array = wp_list_pluck($posts->posts, 'ID');
         echo '<div class="posts-list">';
-        if (count($post_ids_array) > 0) {
+        if (!empty($post_ids_array)) {
           //Generate Loop Grid for the current term
           $loop_builder_module = ProPlugin::instance()->modules_manager->get_modules('loop-builder');
           if (!$loop_builder_module || !$loop_builder_module->is_active()) {
             echo '<p class="error-message">' . esc_html__('Loop Builder module not available.', 'elementor-taxonomy-loop') . '</p>';
-            return;
+            echo '</div>';
+            echo '</div>';
+            continue;
           }
 
           // Proceed if loop template is valid
@@ -687,7 +717,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
                   'template_id' => $skin,
                   'post_query_post_type' => 'by_id',
                   'post_query_posts_ids' => $post_ids_array,
-                  "posts_per_page" => count($post_ids_array),
+                  'posts_per_page' => count($post_ids_array),
                   "post_query_orderby" => $settings['post_orderby'] ?? 'date',
                   "post_query_order" => $settings['post_order'] ?? 'DESC',
                   'columns' => $settings['columns'] ?? 3,
