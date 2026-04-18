@@ -85,7 +85,7 @@ The widget runs one bounded `WP_Query` per term (capped by **Posts Per Term**), 
 
 ### Lazy loading
 
-Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint then only queries and renders the first _N_ terms (default `2`). Remaining terms emit a stub that the bundled loader swaps for real content when it scrolls into view — one `admin-ajax.php` request per term, with a 200px pre-load margin. The loader also watches `document.body` for DOM mutations so stubs inside Elementor popups, offcanvas drawers, or dynamically revealed tabs/accordions still get picked up. If IntersectionObserver isn't available, stubs load immediately instead of never.
+Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint then only queries and renders the first _N_ terms (default `2`). Remaining terms emit a stub that the bundled loader swaps for real content when it scrolls into view — one `admin-ajax.php` request per term, with a 200px pre-load margin. If IntersectionObserver isn't available, stubs load immediately instead of never.
 
 Setting **Eager-Rendered Terms** to a value that covers your above-the-fold area keeps LCP fast; everything beyond loads on demand.
 
@@ -97,7 +97,7 @@ For support, feature requests, or bug reports, please visit [beenacle.com/contac
 
 ### 1.2.0
 * Add lazy loading: when **Lazy Load Terms** is on, terms beyond the "Eager-Rendered Terms" count emit a stub that's filled in via AJAX when it scrolls into view. Default is **off** (opt-in) to avoid surprising existing installs; default eager count is `2`.
-* Ship a small vanilla JS loader (`assets/js/taxonomy-loop-lazy.js`) that combines `IntersectionObserver` (with a 200px rootMargin) and a `MutationObserver` on `document.body` so stubs inside Elementor popups, offcanvas drawers, tabs, and accordions that are added or revealed after first paint still get picked up. Exposes `window.ElementorTaxonomyLoop.rescan(scope?)` as an escape hatch.
+* Ship a small vanilla JS loader (`assets/js/taxonomy-loop-lazy.js`) that uses `IntersectionObserver` with a 200px rootMargin to fetch each term as it scrolls into view. Browsers without `IntersectionObserver` fall back to loading every stub immediately instead of never.
 * Add a new `wp_ajax_elementor_taxonomy_loop_render_term` endpoint (with `nopriv` variant) that re-validates every field against the same whitelists used in `render()` (post type / taxonomy / `is_object_in_taxonomy()` / template = `elementor_library` / orderby / order / columns clamped 1–12 / posts per term capped at 100).
 * Editor and preview modes skip lazy loading so the full layout is always visible while designing.
 * Reuse the same render path for both eager and AJAX-rendered terms via a single `render_loop_grid_html()` helper — no drift between the two paths.

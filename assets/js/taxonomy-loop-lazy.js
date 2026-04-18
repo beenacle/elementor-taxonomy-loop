@@ -7,22 +7,6 @@
 
   var STUB_SELECTOR = '[data-taxonomy-loop-stub="1"]';
   var WIDGET_SELECTOR = '[data-taxonomy-loop-lazy="1"]';
-  var observed = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
-
-  function alreadyObserved(node) {
-    if (observed) {
-      return observed.has(node);
-    }
-    return node.getAttribute('data-taxonomy-loop-seen') === '1';
-  }
-
-  function markObserved(node) {
-    if (observed) {
-      observed.add(node);
-    } else {
-      node.setAttribute('data-taxonomy-loop-seen', '1');
-    }
-  }
 
   function getConfig(stub) {
     var widget = stub.closest ? stub.closest(WIDGET_SELECTOR) : null;
@@ -41,18 +25,13 @@
   }
 
   function renderError(stub) {
-    stub.innerHTML = '<p class="error-message">' +
-      'Unable to load posts for this term.' +
-      '</p>';
+    stub.innerHTML = '<p class="error-message">Unable to load posts for this term.</p>';
     stub.removeAttribute('aria-busy');
   }
 
   function triggerElementorHandlers(container) {
-    if (!window.elementorFrontend || !window.elementorFrontend.elementsHandler) {
-      return;
-    }
-    var handler = window.elementorFrontend.elementsHandler;
-    if (typeof handler.runReadyTrigger !== 'function') {
+    var handler = window.elementorFrontend && window.elementorFrontend.elementsHandler;
+    if (!handler || typeof handler.runReadyTrigger !== 'function') {
       return;
     }
     var widgets = container.querySelectorAll('.elementor-widget');
@@ -93,9 +72,7 @@
       credentials: 'same-origin',
       body: body
     })
-      .then(function (res) {
-        return res.ok ? res.json() : null;
-      })
+      .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (data) {
         if (data && data.success && data.data && typeof data.data.html === 'string') {
           stub.innerHTML = data.data.html;
@@ -106,23 +83,26 @@
           renderError(stub);
         }
       })
-      .catch(function () {
-        renderError(stub);
-      });
+      .catch(function () { renderError(stub); });
   }
 
-  var io = null;
+  function init() {
+    var stubs = document.querySelectorAll(STUB_SELECTOR);
+    if (!stubs.length) {
+      return;
+    }
 
-  function ensureObserver() {
-    if (io) {
-      return io;
-    }
     if (typeof IntersectionObserver === 'undefined') {
-      return null;
+      // Old browser: fetch everything upfront.
+      for (var i = 0; i < stubs.length; i++) {
+        loadStub(stubs[i]);
+      }
+      return;
     }
-    io = new IntersectionObserver(function (entries) {
-      for (var i = 0; i < entries.length; i++) {
-        var entry = entries[i];
+
+    var io = new IntersectionObserver(function (entries) {
+      for (var j = 0; j < entries.length; j++) {
+        var entry = entries[j];
         if (!entry.isIntersecting) {
           continue;
         }
@@ -134,69 +114,10 @@
       rootMargin: '200px 0px',
       threshold: 0.01
     });
-    return io;
-  }
 
-  function observeStub(stub) {
-    if (alreadyObserved(stub)) {
-      return;
+    for (var k = 0; k < stubs.length; k++) {
+      io.observe(stubs[k]);
     }
-    markObserved(stub);
-    var observer = ensureObserver();
-    if (observer) {
-      observer.observe(stub);
-    } else {
-      // No IntersectionObserver (very old browser): load immediately.
-      loadStub(stub);
-    }
-  }
-
-  function observeStubsIn(root) {
-    if (!root || typeof root.querySelectorAll !== 'function') {
-      return;
-    }
-    var stubs = root.querySelectorAll(STUB_SELECTOR);
-    for (var i = 0; i < stubs.length; i++) {
-      observeStub(stubs[i]);
-    }
-  }
-
-  function init() {
-    observeStubsIn(document);
-
-    // MutationObserver picks up stubs added after initial paint —
-    // e.g. Elementor popups, offcanvas drawers that detach/reattach
-    // their content, tabs/accordions that inject hidden trees.
-    if (typeof MutationObserver === 'undefined' || !document.body) {
-      return;
-    }
-    var mo = new MutationObserver(function (mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        var added = mutations[i].addedNodes;
-        if (!added || !added.length) {
-          continue;
-        }
-        for (var j = 0; j < added.length; j++) {
-          var node = added[j];
-          if (!node || node.nodeType !== 1) {
-            continue;
-          }
-          if (node.matches && node.matches(STUB_SELECTOR)) {
-            observeStub(node);
-          } else {
-            observeStubsIn(node);
-          }
-        }
-      }
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    // Escape hatch for themes/plugins that inject DOM in ways
-    // MutationObserver can't catch (rare, but e.g. shadow DOM).
-    window.ElementorTaxonomyLoop = window.ElementorTaxonomyLoop || {};
-    window.ElementorTaxonomyLoop.rescan = function (scope) {
-      observeStubsIn(scope || document);
-    };
   }
 
   if (document.readyState === 'loading') {
