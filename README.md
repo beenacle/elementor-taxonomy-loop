@@ -90,4 +90,4 @@ along with Elementor Taxonomy Loop Widget. If not, see [GNU GPL v2 or later](htt
 
 ## Credits
 
-Developed by Beenacle Technologies
+Developed by Beenacle
