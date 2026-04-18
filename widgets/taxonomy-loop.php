@@ -46,7 +46,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
 
   public function get_categories(): array
   {
-    return ['basic'];
+    return ['general'];
   }
 
   public function get_keywords(): array
@@ -134,7 +134,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
       ]
     );
     $this->add_control(
-      'show_empty',
+      'hide_empty',
       [
         'label' => esc_html__('Hide Empty Terms', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SWITCHER,
@@ -670,9 +670,10 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
 
     // Fetch terms for the specified taxonomy
     // WordPress already caches get_terms() internally, so no need for transient cache
+    $hide_empty_setting = $settings['hide_empty'] ?? $settings['show_empty'] ?? 'no';
     $terms_args = [
       'taxonomy'   => $taxonomy,
-      'hide_empty' => (isset($settings['show_empty']) && 'yes' === $settings['show_empty']) ? true : false,
+      'hide_empty' => 'yes' === $hide_empty_setting,
       'orderby'    => $term_orderby,
       'order'      => $term_order,
     ];
