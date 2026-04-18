@@ -689,6 +689,16 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
       return;
     }
 
+    if (!is_object_in_taxonomy($post_type, $taxonomy)) {
+      echo '<p class="error-message">' . esc_html(sprintf(
+        /* translators: 1: taxonomy slug, 2: post type slug */
+        __('The taxonomy "%1$s" is not registered for the "%2$s" post type. Pick a matching combination.', 'elementor-taxonomy-loop'),
+        $taxonomy,
+        $post_type
+      )) . '</p>';
+      return;
+    }
+
     $include_terms = $this->parse_term_ids($settings['include_terms'] ?? '');
     $exclude_terms = $this->parse_term_ids($settings['exclude_terms'] ?? '');
     $posts_per_term = isset($settings['posts_per_term']) ? (int) $settings['posts_per_term'] : 6;
