@@ -597,21 +597,26 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
         'label' => esc_html__('Alignment', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::CHOOSE,
         'options' => [
-          'margin-right: auto;' => [
+          'left' => [
             'title' => esc_html__('Left', 'elementor-taxonomy-loop'),
             'icon' => 'eicon-text-align-left',
           ],
-          'margin:auto;' => [
+          'center' => [
             'title' => esc_html__('Center', 'elementor-taxonomy-loop'),
             'icon' => 'eicon-text-align-center',
           ],
-          'margin-left: auto;' => [
+          'right' => [
             'title' => esc_html__('Right', 'elementor-taxonomy-loop'),
             'icon' => 'eicon-text-align-right',
           ],
         ],
-        'default' => 'margin-right: auto;',
+        'default' => 'left',
         'toggle' => true,
+        'selectors_dictionary' => [
+          'left' => 'margin-right: auto;',
+          'center' => 'margin: auto;',
+          'right' => 'margin-left: auto;',
+        ],
         'selectors' => [
           '{{WRAPPER}} .term-content .divider' => '{{VALUE}}',
         ],

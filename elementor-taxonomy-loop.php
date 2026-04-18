@@ -13,7 +13,7 @@
  */
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly.
+  exit; // Exit if accessed directly.
 }
 
 define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.0.0');
@@ -21,34 +21,33 @@ define('ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__);
 define('ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path(__FILE__));
 define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
 
-//Register widgets....
 function elementor_taxonomy_loop_widgets($widgets_manager)
 {
-    if (!class_exists('\ElementorPro\Plugin')) {
-        return;
-    }
+  if (!class_exists('\ElementorPro\Plugin')) {
+    return;
+  }
 
-    $widget_file = ELEMENTOR_TAXONOMY_LOOP_PATH . 'widgets/taxonomy-loop.php';
+  $widget_file = ELEMENTOR_TAXONOMY_LOOP_PATH . 'widgets/taxonomy-loop.php';
 
-    if (file_exists($widget_file)) {
-        require_once($widget_file);
-        $widgets_manager->register(new \Taxonomy_Loop());
-    } else {
-        error_log('Elementor Taxonomy Loop Widget: Widget file not found at ' . $widget_file);
-    }
+  if (file_exists($widget_file)) {
+    require_once($widget_file);
+    $widgets_manager->register(new \Taxonomy_Loop());
+  } else {
+    error_log('Elementor Taxonomy Loop Widget: Widget file not found at ' . $widget_file);
+  }
 }
 add_action('elementor/widgets/register', 'elementor_taxonomy_loop_widgets');
 
 // Register styles for widgets. Elementor will enqueue them via get_style_depends().
 function elementor_taxonomy_loop_widgets_styles()
 {
-    if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/css/taxonomy-loop.css')) {
-        wp_register_style(
-            'taxonomy-loop-style',
-            ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/css/taxonomy-loop.css',
-            [],
-            ELEMENTOR_TAXONOMY_LOOP_VERSION
-        );
-    }
+  if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/css/taxonomy-loop.css')) {
+    wp_register_style(
+      'taxonomy-loop-style',
+      ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/css/taxonomy-loop.css',
+      [],
+      ELEMENTOR_TAXONOMY_LOOP_VERSION
+    );
+  }
 }
 add_action('elementor/frontend/after_register_styles', 'elementor_taxonomy_loop_widgets_styles');
