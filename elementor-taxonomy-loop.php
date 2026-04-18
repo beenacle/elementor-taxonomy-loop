@@ -1,11 +1,18 @@
 <?php
 /**
- * Plugin Name: Elementor Taxonomy Loop Widget
- * Description: A powerful Elementor widget for displaying taxonomy terms with custom loop templates.
- * Version:     1.0.0
- * Author:      Beenacle
- * Author URI:  https://beenacle.com
- * Text Domain: elementor-taxonomy-loop
+ * Plugin Name:       Elementor Taxonomy Loop Widget
+ * Plugin URI:        https://github.com/beenacle/elementor-taxonomy-loop
+ * Description:       A powerful Elementor widget for displaying taxonomy terms with custom loop templates.
+ * Version:           1.1.0
+ * Requires at least: 6.0
+ * Requires PHP:      7.4
+ * Author:            Beenacle
+ * Author URI:        https://beenacle.com
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       elementor-taxonomy-loop
+ * Domain Path:       /languages
+ * Update URI:        https://github.com/beenacle/elementor-taxonomy-loop
  *
  * Requires Plugins: elementor, elementor-pro
  * Elementor tested up to: 3.25.0
@@ -13,13 +20,35 @@
  */
 
 if (!defined('ABSPATH')) {
-  exit; // Exit if accessed directly.
+  exit;
 }
 
-define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.0.0');
+define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.1.0');
 define('ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__);
 define('ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path(__FILE__));
 define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
+
+function elementor_taxonomy_loop_load_textdomain()
+{
+  load_plugin_textdomain(
+    'elementor-taxonomy-loop',
+    false,
+    dirname(plugin_basename(ELEMENTOR_TAXONOMY_LOOP_FILE)) . '/languages'
+  );
+}
+add_action('init', 'elementor_taxonomy_loop_load_textdomain');
+
+function elementor_taxonomy_loop_missing_pro_notice()
+{
+  if (class_exists('\ElementorPro\Plugin')) {
+    return;
+  }
+  printf(
+    '<div class="notice notice-error"><p>%s</p></div>',
+    esc_html__('Elementor Taxonomy Loop Widget requires Elementor Pro to be installed and active.', 'elementor-taxonomy-loop')
+  );
+}
+add_action('admin_notices', 'elementor_taxonomy_loop_missing_pro_notice');
 
 function elementor_taxonomy_loop_widgets($widgets_manager)
 {
@@ -31,8 +60,8 @@ function elementor_taxonomy_loop_widgets($widgets_manager)
 
   if (file_exists($widget_file)) {
     require_once($widget_file);
-    $widgets_manager->register(new \Taxonomy_Loop());
-  } else {
+    $widgets_manager->register(new \Beenacle_Taxonomy_Loop());
+  } elseif (defined('WP_DEBUG') && WP_DEBUG) {
     error_log('Elementor Taxonomy Loop Widget: Widget file not found at ' . $widget_file);
   }
 }
