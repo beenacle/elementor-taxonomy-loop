@@ -19,7 +19,8 @@ The Taxonomy Loop widget allows you to:
 
 ## Requirements
 
-- WordPress 5.0 or higher
+- WordPress 6.0 or higher
+- PHP 7.4 or higher
 - Elementor 3.25.0 or higher
 - Elementor Pro 3.25.0 or higher
 
@@ -79,6 +80,12 @@ This plugin is distributed via GitHub and is not listed on wordpress.org, so Wor
 For support, feature requests, or bug reports, please visit our [contact page](https://beenacle.com/contact-us/).
 
 ## Changelog
+
+### 1.1.1
+* Fix post distribution: each term is now fetched with its own bounded query so uneven post distribution across terms can't leave later terms empty.
+* Drop dependency on Elementor Pro's internal `elementor-pro` style handle from `get_style_depends()`.
+* Use Elementor's random-string helper for the synthetic loop-grid element ID instead of a predictable `loop-grid-{term_id}` string.
+* README: correct the stated minimum WordPress version to match the plugin header (6.0) and add the PHP requirement.
 
 ### 1.1.0
 * Require Elementor Pro as a hard dependency; widget now registers only when Pro is active, with an admin notice when it isn't.
