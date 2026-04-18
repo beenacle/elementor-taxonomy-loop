@@ -7,7 +7,7 @@
  * Author URI:  https://beenacle.com
  * Text Domain: elementor-taxonomy-loop
  *
- * Requires Plugins: elementor
+ * Requires Plugins: elementor, elementor-pro
  * Elementor tested up to: 3.25.0
  * Elementor Pro tested up to: 3.25.0
  */
@@ -24,7 +24,10 @@ define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
 //Register widgets....
 function elementor_taxonomy_loop_widgets($widgets_manager)
 {
-    //Widget Files
+    if (!class_exists('\ElementorPro\Plugin')) {
+        return;
+    }
+
     $widget_file = ELEMENTOR_TAXONOMY_LOOP_PATH . 'widgets/taxonomy-loop.php';
 
     if (file_exists($widget_file)) {
@@ -35,23 +38,6 @@ function elementor_taxonomy_loop_widgets($widgets_manager)
     }
 }
 add_action('elementor/widgets/register', 'elementor_taxonomy_loop_widgets');
-
-//Register scripts for widgets....
-// function elementor_taxonomy_loop_widgets_scripts()
-// {
-//     $script_path = ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/js/taxonomy-loop.js';
-//     if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/js/taxonomy-loop.js')) {
-//         wp_register_script(
-//             'taxonomy-loop-script',
-//             $script_path,
-//             ['jquery', 'elementor-frontend'],
-//             ELEMENTOR_TAXONOMY_LOOP_VERSION,
-//             true
-//         );
-//         wp_enqueue_script('taxonomy-loop-script');
-//     }
-// }
-// add_action('elementor/frontend/after_enqueue_scripts', 'elementor_taxonomy_loop_widgets_scripts');
 
 // Register styles for widgets. Elementor will enqueue them via get_style_depends().
 function elementor_taxonomy_loop_widgets_styles()
