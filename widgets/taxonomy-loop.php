@@ -747,7 +747,13 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
 
     // Fetch terms for the specified taxonomy
     // WordPress already caches get_terms() internally, so no need for transient cache
-    $hide_empty_setting = $settings['hide_empty'] ?? $settings['show_empty'] ?? 'no';
+    // Read raw saved data for the legacy `show_empty` key: get_settings_for_display()
+    // fills in defaults for registered controls, so the new `hide_empty` key is
+    // never null and a ?? fallback on $settings would never reach the legacy value.
+    $raw_settings = $this->get_data('settings');
+    $hide_empty_setting = is_array($raw_settings) && isset($raw_settings['show_empty'])
+      ? $raw_settings['show_empty']
+      : ($settings['hide_empty'] ?? 'no');
     $terms_args = [
       'taxonomy'   => $taxonomy,
       'hide_empty' => 'yes' === $hide_empty_setting,

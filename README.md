@@ -70,6 +70,18 @@ For support, feature requests, or bug reports, please visit our [contact page](h
 
 ## Changelog
 
+### 1.1.0
+* Require Elementor Pro as a hard dependency; widget now registers only when Pro is active.
+* Replace the per-term query loop with two consolidated queries (1 WP_Query + 1 wp_get_object_terms) bucketed in PHP.
+* Rename the `show_empty` control to `hide_empty`; existing widget instances keep their saved toggle via a raw-data fallback.
+* Whitelist `orderby`/`order` values before passing to WP_Query.
+* Show a "Please select a valid loop template" message when the loop skin is empty or invalid instead of rendering an empty container.
+* Change the default `posts_per_term` from `-1` to `6` to avoid unbounded queries on new widgets.
+* Use semantic tokens (`left`/`center`/`right`) for the divider alignment control instead of raw CSS fragments.
+* Move the widget from Elementor's reserved `basic` category to `general`.
+* Consistency: normalize indentation and use `esc_html__()` throughout the widget file.
+* Update author name to Beenacle.
+
 ### 1.0.0
 * Initial release
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Elementor Taxonomy Loop Widget
  * Description: A powerful Elementor widget for displaying taxonomy terms with custom loop templates.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      Beenacle
  * Author URI:  https://beenacle.com
  * Text Domain: elementor-taxonomy-loop
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
   exit; // Exit if accessed directly.
 }
 
-define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.0.0');
+define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.1.0');
 define('ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__);
 define('ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path(__FILE__));
 define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
