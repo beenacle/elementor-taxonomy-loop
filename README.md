@@ -27,7 +27,7 @@ The Taxonomy Loop widget allows you to:
 
 ### From a GitHub release (recommended)
 
-1. Go to the [Releases](https://github.com/beenacle/elementor-taxonomy-loop/releases) page and download the latest `elementor-taxonomy-loop.zip` asset.
+1. Go to the [Releases](https://github.com/beenacle/elementor-taxonomy-loop/releases) page and download the latest `elementor-taxonomy-loop.zip` asset (produced automatically by the release workflow and unpacks into a stable `elementor-taxonomy-loop/` folder).
 2. In WordPress admin, open **Plugins → Add New → Upload Plugin** and select the downloaded zip.
 3. Click **Install Now**, then **Activate**.
 4. Ensure **Elementor** and **Elementor Pro** are active; the widget will not register without them.

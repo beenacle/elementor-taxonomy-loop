@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build and publish release zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify plugin version matches tag
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          header_version=$(grep -E "^ \* Version:" elementor-taxonomy-loop.php | awk -F: '{print $2}' | xargs)
+          constant_version=$(grep -E "ELEMENTOR_TAXONOMY_LOOP_VERSION" elementor-taxonomy-loop.php | head -n1 | sed -E "s/.*'([0-9.]+)'.*/\1/")
+          echo "Tag:      ${tag_version}"
+          echo "Header:   ${header_version}"
+          echo "Constant: ${constant_version}"
+          if [ "${tag_version}" != "${header_version}" ] || [ "${tag_version}" != "${constant_version}" ]; then
+            echo "::error::Tag, plugin header, and version constant must match."
+            exit 1
+          fi
+
+      - name: Build release zip
+        run: |
+          git archive \
+            --format=zip \
+            --prefix=elementor-taxonomy-loop/ \
+            --output=elementor-taxonomy-loop.zip \
+            HEAD
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: elementor-taxonomy-loop.zip
+          generate_release_notes: true
