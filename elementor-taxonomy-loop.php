@@ -3,7 +3,7 @@
  * Plugin Name: Elementor Taxonomy Loop Widget
  * Description: A powerful Elementor widget for displaying taxonomy terms with custom loop templates.
  * Version:     1.0.0
- * Author:      Beenacle Technologies
+ * Author:      Beenacle
  * Author URI:  https://beenacle.com
  * Text Domain: elementor-taxonomy-loop
  *
