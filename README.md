@@ -52,6 +52,8 @@ This plugin is not listed on wordpress.org, so core won't surface update notific
 | **Order Posts By** | `date`, `title`, `ID`, `menu_order`, or `rand`. |
 | **Post Order Direction** | Ascending or descending (applies to posts within each term). |
 | **Posts Per Term** | Max posts per term (default `6`, `-1` for unlimited). |
+| **Lazy Load Terms** | Off by default. When on, only the first _N_ terms render server-side; the rest load via AJAX when they scroll into view. Editor/preview always renders everything eagerly. |
+| **Eager-Rendered Terms** | Number of terms rendered on first paint (default `2`, minimum `1`). Only shown when **Lazy Load Terms** is on. |
 | **Title Prefix / Suffix** | Plain-text strings wrapped around each term name in the rendered `<h2>`. |
 
 ### Style
@@ -81,11 +83,24 @@ Each term produces:
 
 The widget runs one bounded `WP_Query` per term (capped by **Posts Per Term**), letting WordPress's object cache short-circuit repeat renders. Setting **Posts Per Term** to `-1` removes that cap — avoid it on terms with very large post counts.
 
+### Lazy loading
+
+Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint then only queries and renders the first _N_ terms (default `2`). Remaining terms emit a stub that the bundled loader swaps for real content when it scrolls into view — one `admin-ajax.php` request per term, with a 200px pre-load margin. The loader also watches `document.body` for DOM mutations so stubs inside Elementor popups, offcanvas drawers, or dynamically revealed tabs/accordions still get picked up. If IntersectionObserver isn't available, stubs load immediately instead of never.
+
+Setting **Eager-Rendered Terms** to a value that covers your above-the-fold area keeps LCP fast; everything beyond loads on demand.
+
 ## Support
 
 For support, feature requests, or bug reports, please visit [beenacle.com/contact-us](https://beenacle.com/contact-us/) or open an issue on this repo.
 
 ## Changelog
+
+### 1.2.0
+* Add lazy loading: when **Lazy Load Terms** is on, terms beyond the "Eager-Rendered Terms" count emit a stub that's filled in via AJAX when it scrolls into view. Default is **off** (opt-in) to avoid surprising existing installs; default eager count is `2`.
+* Ship a small vanilla JS loader (`assets/js/taxonomy-loop-lazy.js`) that combines `IntersectionObserver` (with a 200px rootMargin) and a `MutationObserver` on `document.body` so stubs inside Elementor popups, offcanvas drawers, tabs, and accordions that are added or revealed after first paint still get picked up. Exposes `window.ElementorTaxonomyLoop.rescan(scope?)` as an escape hatch.
+* Add a new `wp_ajax_elementor_taxonomy_loop_render_term` endpoint (with `nopriv` variant) that re-validates every field against the same whitelists used in `render()` (post type / taxonomy / `is_object_in_taxonomy()` / template = `elementor_library` / orderby / order / columns clamped 1–12 / posts per term capped at 100).
+* Editor and preview modes skip lazy loading so the full layout is always visible while designing.
+* Reuse the same render path for both eager and AJAX-rendered terms via a single `render_loop_grid_html()` helper — no drift between the two paths.
 
 ### 1.1.1
 * Fetch post IDs per term with a bounded query so uneven distribution across terms can't leave later terms empty.

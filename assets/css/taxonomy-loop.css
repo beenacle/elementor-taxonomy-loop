@@ -37,3 +37,14 @@
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
 }
+
+.elementor-widget-taxonomy_loop .elementor-widget-container .posts-list[data-taxonomy-loop-stub="1"] {
+  min-height: 80px;
+}
+
+.elementor-widget-taxonomy_loop .elementor-widget-container .taxonomy-loop-loading {
+  margin: 0;
+  padding: 10px;
+  color: #6c757d;
+  opacity: 0.7;
+}

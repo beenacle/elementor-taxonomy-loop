@@ -3,7 +3,7 @@
  * Plugin Name:       Elementor Taxonomy Loop Widget
  * Plugin URI:        https://github.com/beenacle/elementor-taxonomy-loop
  * Description:       A powerful Elementor widget for displaying taxonomy terms with custom loop templates.
- * Version:           1.1.1
+ * Version:           1.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Beenacle
@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.1.1');
+define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.2.0');
 define('ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__);
 define('ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path(__FILE__));
 define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
@@ -80,3 +80,37 @@ function elementor_taxonomy_loop_widgets_styles()
   }
 }
 add_action('elementor/frontend/after_register_styles', 'elementor_taxonomy_loop_widgets_styles');
+
+// Register the lazy-load script. Elementor will enqueue it via get_script_depends()
+// only on pages that actually contain the widget.
+function elementor_taxonomy_loop_widgets_scripts()
+{
+  if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/js/taxonomy-loop-lazy.js')) {
+    wp_register_script(
+      'elementor-taxonomy-loop-lazy',
+      ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/js/taxonomy-loop-lazy.js',
+      [],
+      ELEMENTOR_TAXONOMY_LOOP_VERSION,
+      true
+    );
+  }
+}
+add_action('elementor/frontend/after_register_scripts', 'elementor_taxonomy_loop_widgets_scripts');
+
+// AJAX: render a single term's Loop Grid for lazy-loaded stubs.
+function elementor_taxonomy_loop_ajax_render_term()
+{
+  if (!class_exists('\\Elementor\\Widget_Base') || !class_exists('\\ElementorPro\\Plugin')) {
+    wp_send_json_error(['message' => 'Elementor Pro is not active.'], 500);
+  }
+  if (!class_exists('\\Beenacle_Taxonomy_Loop')) {
+    $widget_file = ELEMENTOR_TAXONOMY_LOOP_PATH . 'widgets/taxonomy-loop.php';
+    if (!file_exists($widget_file)) {
+      wp_send_json_error(['message' => 'Widget unavailable.'], 500);
+    }
+    require_once($widget_file);
+  }
+  \Beenacle_Taxonomy_Loop::ajax_render_term();
+}
+add_action('wp_ajax_elementor_taxonomy_loop_render_term', 'elementor_taxonomy_loop_ajax_render_term');
+add_action('wp_ajax_nopriv_elementor_taxonomy_loop_render_term', 'elementor_taxonomy_loop_ajax_render_term');
