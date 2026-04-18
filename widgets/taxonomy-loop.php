@@ -29,6 +29,78 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     return in_array($value, $allowed, true) ? $value : $default;
   }
 
+  /**
+   * Fetch post IDs for all given terms in two queries and bucket them by term.
+   * Replaces a per-term get_posts() loop (N+1) with one WP_Query + one
+   * wp_get_object_terms() call.
+   *
+   * @return array<int, int[]> map of term_id => ordered post IDs, capped at $per_term
+   */
+  private function fetch_post_ids_grouped_by_term(
+    string $post_type,
+    string $taxonomy,
+    array $term_ids,
+    string $orderby,
+    string $order,
+    int $per_term
+  ): array {
+    $term_ids = array_values(array_unique(array_map('intval', $term_ids)));
+    $grouped = array_fill_keys($term_ids, []);
+
+    if (empty($term_ids)) {
+      return $grouped;
+    }
+
+    $posts_per_page = $per_term === -1 ? -1 : $per_term * count($term_ids);
+
+    $post_ids = get_posts([
+      'post_type'              => $post_type,
+      'posts_per_page'         => $posts_per_page,
+      'tax_query'              => [
+        [
+          'taxonomy' => $taxonomy,
+          'field'    => 'term_id',
+          'terms'    => $term_ids,
+        ],
+      ],
+      'orderby'                => $orderby,
+      'order'                  => $order,
+      'fields'                 => 'ids',
+      'no_found_rows'          => true,
+      'update_post_meta_cache' => false,
+      'update_post_term_cache' => false,
+    ]);
+
+    if (empty($post_ids)) {
+      return $grouped;
+    }
+
+    $object_terms = wp_get_object_terms($post_ids, $taxonomy, ['fields' => 'all_with_object_id']);
+    if (is_wp_error($object_terms) || empty($object_terms)) {
+      return $grouped;
+    }
+
+    $terms_by_post = [];
+    foreach ($object_terms as $ot) {
+      $terms_by_post[(int) $ot->object_id][] = (int) $ot->term_id;
+    }
+
+    foreach ($post_ids as $post_id) {
+      $post_id = (int) $post_id;
+      foreach ($terms_by_post[$post_id] ?? [] as $tid) {
+        if (!isset($grouped[$tid])) {
+          continue;
+        }
+        if ($per_term !== -1 && count($grouped[$tid]) >= $per_term) {
+          continue;
+        }
+        $grouped[$tid][] = $post_id;
+      }
+    }
+
+    return $grouped;
+  }
+
   public function get_name(): string
   {
     return 'taxonomy_loop';
@@ -691,6 +763,15 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $terms = get_terms($terms_args);
 
     if (!empty($terms) && !is_wp_error($terms)) {
+      $posts_by_term = $this->fetch_post_ids_grouped_by_term(
+        $post_type,
+        $taxonomy,
+        wp_list_pluck($terms, 'term_id'),
+        $post_orderby,
+        $post_order,
+        $posts_per_term
+      );
+
       foreach ($terms as $term) {
         echo '<div class="taxonomy-posts taxonomy-posts-' . esc_attr($term->term_id) . '">';
         echo '<div class="term-content">';
@@ -704,24 +785,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
         }
         echo '</div>';
 
-        // Query posts for the current term
-        $post_ids_array = get_posts([
-          'post_type'      => $post_type,
-          'posts_per_page' => $posts_per_term,
-          'tax_query'      => [
-            [
-              'taxonomy' => $taxonomy,
-              'field'    => 'term_id',
-              'terms'    => $term->term_id,
-            ],
-          ],
-          'orderby' => $post_orderby,
-          'order' => $post_order,
-          'fields' => 'ids',
-          'no_found_rows' => true, // Optimize query by not counting rows
-          'update_post_meta_cache' => false,
-          'update_post_term_cache' => false,
-        ]);
+        $post_ids_array = $posts_by_term[(int) $term->term_id] ?? [];
 
         echo '<div class="posts-list">';
         if (!empty($post_ids_array)) {
