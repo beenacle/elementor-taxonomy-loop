@@ -1,15 +1,11 @@
 (function () {
   'use strict';
 
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return;
-  }
-
   var STUB_SELECTOR = '[data-taxonomy-loop-stub="1"]';
   var WIDGET_SELECTOR = '[data-taxonomy-loop-lazy="1"]';
 
   function getConfig(stub) {
-    var widget = stub.closest ? stub.closest(WIDGET_SELECTOR) : null;
+    var widget = stub.closest(WIDGET_SELECTOR);
     if (!widget) {
       return null;
     }
@@ -24,19 +20,13 @@
     }
   }
 
-  function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   function renderError(stub) {
     var l10n = window.ElementorTaxonomyLoopL10n || {};
-    var message = l10n.errorMessage || 'Unable to load posts for this term.';
-    stub.innerHTML = '<p class="error-message">' + escapeHtml(message) + '</p>';
+    var p = document.createElement('p');
+    p.className = 'error-message';
+    p.textContent = l10n.errorMessage || 'Unable to load posts for this term.';
+    stub.innerHTML = '';
+    stub.appendChild(p);
     stub.removeAttribute('aria-busy');
   }
 
@@ -100,14 +90,6 @@
   function init() {
     var stubs = document.querySelectorAll(STUB_SELECTOR);
     if (!stubs.length) {
-      return;
-    }
-
-    if (typeof IntersectionObserver === 'undefined') {
-      // Old browser: fetch everything upfront.
-      for (var i = 0; i < stubs.length; i++) {
-        loadStub(stubs[i]);
-      }
       return;
     }
 

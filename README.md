@@ -96,10 +96,9 @@ For support, feature requests, or bug reports, please visit [beenacle.com/contac
 ## Changelog
 
 ### 1.2.1
-* Object-cache the per-term post-ID lookup, keyed by post type / taxonomy / term / ordering / cap and versioned with `wp_cache_get_last_changed('posts' | 'terms')` so entries invalidate automatically on post and term-relationship writes.
-* Localize the JS error string via `wp_localize_script` and escape it on the client before insertion.
+* Localize the JS error string via `wp_localize_script`.
 * `error_log()` on `get_terms()` returning `WP_Error` when `WP_DEBUG` is on.
-* Housekeeping: `parse_term_ids` is now `private static`, comment typo fixed, unused `foreach` key dropped.
+* Housekeeping: `parse_term_ids` is now `private static`, comment typo fixed, unused `foreach` key dropped, dead fallback branches removed (Elementor's `Utils::generate_random_string()` and `IntersectionObserver` are both universally available on supported versions / browsers).
 
 ### 1.2.0
 * Add lazy loading: when **Lazy Load Terms** is on, terms beyond the "Eager-Rendered Terms" count emit a stub that's filled in via AJAX when it scrolls into view. Default is **off** (opt-in) to avoid surprising existing installs; default eager count is `2`.

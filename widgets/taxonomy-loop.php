@@ -37,17 +37,12 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
   private const AJAX_ACTION            = 'elementor_taxonomy_loop_render_term';
   private const AJAX_NONCE_ACTION      = 'elementor_taxonomy_loop_render';
   private const LAZY_PER_TERM_MAX      = 100;
-  private const CACHE_GROUP            = 'elementor_taxonomy_loop';
 
   /**
    * Fetch post IDs for each term, capped at $per_term per term.
    *
-   * Runs one bounded query per term so that uneven post distribution across
-   * terms can't starve later buckets (a single consolidated query ordered by
-   * date/title can exhaust its window on the first term and leave the rest
-   * empty). Each per-term result is memoized via the object cache under a
-   * key versioned with `wp_cache_get_last_changed('posts' | 'terms')`, so
-   * post/term writes invalidate the entry automatically.
+   * One bounded query per term — keeps distribution across terms honest
+   * even when posts are skewed toward one term.
    *
    * @return array<int, int[]> map of term_id => ordered post IDs
    */
@@ -62,29 +57,8 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     $term_ids = array_values(array_unique(array_map('intval', $term_ids)));
     $grouped = array_fill_keys($term_ids, []);
 
-    $last_changed_posts = function_exists('wp_cache_get_last_changed') ? wp_cache_get_last_changed('posts') : '';
-    $last_changed_terms = function_exists('wp_cache_get_last_changed') ? wp_cache_get_last_changed('terms') : '';
-
     foreach ($term_ids as $term_id) {
-      $cache_key = sprintf(
-        'posts:%s:%s:%d:%s:%s:%d:%s:%s',
-        $post_type,
-        $taxonomy,
-        $term_id,
-        $orderby,
-        $order,
-        $per_term,
-        $last_changed_posts,
-        $last_changed_terms
-      );
-
-      $cached = wp_cache_get($cache_key, self::CACHE_GROUP);
-      if (is_array($cached)) {
-        $grouped[$term_id] = $cached;
-        continue;
-      }
-
-      $post_ids = get_posts([
+      $grouped[$term_id] = get_posts([
         'post_type'              => $post_type,
         'posts_per_page'         => $per_term,
         'tax_query'              => [
@@ -101,9 +75,6 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
       ]);
-
-      $grouped[$term_id] = $post_ids;
-      wp_cache_set($cache_key, $post_ids, self::CACHE_GROUP);
     }
 
     return $grouped;
@@ -944,9 +915,7 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 
     try {
       $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
-        'id' => method_exists(ElementorUtils::class, 'generate_random_string')
-          ? ElementorUtils::generate_random_string()
-          : substr(md5('loop-grid-' . wp_rand()), 0, 7),
+        'id' => ElementorUtils::generate_random_string(),
         'elType' => 'widget',
         'widgetType' => 'loop-grid',
         'settings' => [
