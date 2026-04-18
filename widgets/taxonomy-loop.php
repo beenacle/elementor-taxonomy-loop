@@ -92,7 +92,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'post_type',
       [
-        'label' => __('Select Post Type', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Select Post Type', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'default' => 'post',
         'options' => $public_types,
@@ -101,7 +101,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'taxonomy',
       [
-        'label' => __('Select Taxonomy', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Select Taxonomy', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'options' => $supported_taxonomies,
         'default' => 'category',
@@ -110,7 +110,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'loop_skin',
       [
-        'label' => __('Select Loop Skin', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Select Loop Skin', 'elementor-taxonomy-loop'),
         'type' => Template_Query::CONTROL_ID,
         'autocomplete' => [
           'object' => QueryControlModule::QUERY_OBJECT_LIBRARY_TEMPLATE,
@@ -158,7 +158,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'include_terms',
       [
-        'label' => __('Include Terms (IDs)', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Include Terms (IDs)', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::TEXT,
         'ai' => [
           'active' => false,
@@ -168,7 +168,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'exclude_terms',
       [
-        'label' => __('Exclude Terms (IDs)', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Exclude Terms (IDs)', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::TEXT,
         'ai' => [
           'active' => false,
@@ -178,27 +178,27 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'orderby',
       [
-        'label' => __('Order Terms By', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Order Terms By', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'default' => 'name',
         'options' => [
-          'name' => __('Name', 'elementor-taxonomy-loop'),
-          'id' => __('ID', 'elementor-taxonomy-loop'),
-          'slug' => __('Slug', 'elementor-taxonomy-loop'),
-          'menu_order' => __('Menu Order', 'elementor-taxonomy-loop'),
-          'include' => __('Include', 'elementor-taxonomy-loop'),
+          'name' => esc_html__('Name', 'elementor-taxonomy-loop'),
+          'id' => esc_html__('ID', 'elementor-taxonomy-loop'),
+          'slug' => esc_html__('Slug', 'elementor-taxonomy-loop'),
+          'menu_order' => esc_html__('Menu Order', 'elementor-taxonomy-loop'),
+          'include' => esc_html__('Include', 'elementor-taxonomy-loop'),
         ],
       ]
     );
     $this->add_control(
       'order',
       [
-        'label' => __('Order Direction', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Order Direction', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'default' => 'ASC',
         'options' => [
-          'ASC' => __('Ascending', 'elementor-taxonomy-loop'),
-          'DESC' => __('Descending', 'elementor-taxonomy-loop'),
+          'ASC' => esc_html__('Ascending', 'elementor-taxonomy-loop'),
+          'DESC' => esc_html__('Descending', 'elementor-taxonomy-loop'),
         ],
       ]
     );
@@ -206,15 +206,15 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'post_orderby',
       [
-        'label' => __('Order Posts By', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Order Posts By', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'default' => 'date',
         'options' => [
-          'date' => __('Date', 'elementor-taxonomy-loop'),
-          'title' => __('Title', 'elementor-taxonomy-loop'),
-          'ID' => __('ID', 'elementor-taxonomy-loop'),
-          'menu_order' => __('Menu Order', 'elementor-taxonomy-loop'),
-          'rand' => __('Random', 'elementor-taxonomy-loop'),
+          'date' => esc_html__('Date', 'elementor-taxonomy-loop'),
+          'title' => esc_html__('Title', 'elementor-taxonomy-loop'),
+          'ID' => esc_html__('ID', 'elementor-taxonomy-loop'),
+          'menu_order' => esc_html__('Menu Order', 'elementor-taxonomy-loop'),
+          'rand' => esc_html__('Random', 'elementor-taxonomy-loop'),
         ],
       ]
     );
@@ -222,24 +222,24 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'post_order',
       [
-        'label' => __('Post Order Direction', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Post Order Direction', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::SELECT,
         'default' => 'DESC',
         'options' => [
-          'ASC' => __('Ascending', 'elementor-taxonomy-loop'),
-          'DESC' => __('Descending', 'elementor-taxonomy-loop'),
+          'ASC' => esc_html__('Ascending', 'elementor-taxonomy-loop'),
+          'DESC' => esc_html__('Descending', 'elementor-taxonomy-loop'),
         ],
       ]
     );
     $this->add_control(
       'posts_per_term',
       [
-        'label' => __('Posts Per Term', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Posts Per Term', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::NUMBER,
         'default' => 6,
         'min' => -1,
         'step' => 1,
-        'description' => __('Set -1 to show all posts.', 'elementor-taxonomy-loop'),
+        'description' => esc_html__('Set -1 to show all posts.', 'elementor-taxonomy-loop'),
       ]
     );
 
@@ -247,9 +247,9 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'title_prefix',
       [
-        'label' => __('Title Prefix', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Title Prefix', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::TEXT,
-        'placeholder' => __('Enter text to appear before the title', 'elementor-taxonomy-loop'),
+        'placeholder' => esc_html__('Enter text to appear before the title', 'elementor-taxonomy-loop'),
         'label_block' => true,
       ]
     );
@@ -257,9 +257,9 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     $this->add_control(
       'title_suffix',
       [
-        'label' => __('Title Suffix', 'elementor-taxonomy-loop'),
+        'label' => esc_html__('Title Suffix', 'elementor-taxonomy-loop'),
         'type' => \Elementor\Controls_Manager::TEXT,
-        'placeholder' => __('Enter text to appear after the title', 'elementor-taxonomy-loop'),
+        'placeholder' => esc_html__('Enter text to appear after the title', 'elementor-taxonomy-loop'),
         'label_block' => true,
       ]
     );
