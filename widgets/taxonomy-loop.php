@@ -13,7 +13,7 @@ use ElementorPro\Modules\LoopBuilder\Documents\Loop as LoopDocument;
 
 class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 {
-  private function parse_term_ids($value): array
+  private static function parse_term_ids($value): array
   {
     if (!is_string($value) || trim($value) === '') {
       return [];
@@ -25,22 +25,28 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     return array_values(array_unique($ids));
   }
 
-  private function sanitize_choice($value, array $allowed, string $default): string
+  private static function sanitize_choice($value, array $allowed, string $default): string
   {
     return in_array($value, $allowed, true) ? $value : $default;
   }
 
+  private const TERM_ORDERBY_WHITELIST = ['name', 'id', 'slug', 'menu_order', 'include'];
+  private const TERM_ORDER_WHITELIST   = ['ASC', 'DESC'];
+  private const POST_ORDERBY_WHITELIST = ['date', 'title', 'ID', 'menu_order', 'rand'];
+  private const POST_ORDER_WHITELIST   = ['ASC', 'DESC'];
+  private const AJAX_ACTION            = 'elementor_taxonomy_loop_render_term';
+  private const AJAX_NONCE_ACTION      = 'elementor_taxonomy_loop_render';
+  private const LAZY_PER_TERM_MAX      = 100;
+
   /**
    * Fetch post IDs for each term, capped at $per_term per term.
    *
-   * Runs one bounded query per term so that uneven post distribution across
-   * terms can't starve later buckets (a single consolidated query ordered by
-   * date/title can exhaust its window on the first term and leave the rest
-   * empty).
+   * One bounded query per term — keeps distribution across terms honest
+   * even when posts are skewed toward one term.
    *
    * @return array<int, int[]> map of term_id => ordered post IDs
    */
-  private function fetch_post_ids_grouped_by_term(
+  private static function fetch_post_ids_grouped_by_term(
     string $post_type,
     string $taxonomy,
     array $term_ids,
@@ -101,7 +107,7 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 
   public function get_script_depends(): array
   {
-    return [];
+    return ['elementor-taxonomy-loop-lazy'];
   }
 
   public function get_style_depends(): array
@@ -112,13 +118,12 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
   // Register Controls
   protected function register_controls(): void
   {
-    //Get Post Types & public taxanomies
+    // Collect public post types and the union of their registered taxonomies.
     $supported_taxonomies = [];
     $public_types = Pro_Utils::get_public_post_types();
 
     foreach ($public_types as $type => $title) {
-      $taxonomies = get_object_taxonomies($type, 'objects');
-      foreach ($taxonomies as $key => $tax) {
+      foreach (get_object_taxonomies($type, 'objects') as $tax) {
         if (!isset($supported_taxonomies[$tax->name])) {
           $supported_taxonomies[$tax->name] = $tax->label . ' (' . $tax->name . ')';
         }
@@ -284,6 +289,34 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
         'min' => -1,
         'step' => 1,
         'description' => esc_html__('Set -1 to show all posts.', 'elementor-taxonomy-loop'),
+      ]
+    );
+
+    $this->add_control(
+      'lazy_load',
+      [
+        'label' => esc_html__('Lazy Load Terms', 'elementor-taxonomy-loop'),
+        'type' => \Elementor\Controls_Manager::SWITCHER,
+        'label_on' => esc_html__('On', 'elementor-taxonomy-loop'),
+        'label_off' => esc_html__('Off', 'elementor-taxonomy-loop'),
+        'return_value' => 'yes',
+        'default' => 'no',
+        'description' => esc_html__('Render terms beyond the eager count only when they scroll into view.', 'elementor-taxonomy-loop'),
+      ]
+    );
+
+    $this->add_control(
+      'eager_terms_count',
+      [
+        'label' => esc_html__('Eager-Rendered Terms', 'elementor-taxonomy-loop'),
+        'type' => \Elementor\Controls_Manager::NUMBER,
+        'default' => 2,
+        'min' => 1,
+        'step' => 1,
+        'description' => esc_html__('Number of terms rendered server-side on first paint. The rest are fetched lazily when visible.', 'elementor-taxonomy-loop'),
+        'condition' => [
+          'lazy_load' => 'yes',
+        ],
       ]
     );
 
@@ -699,33 +732,17 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
       return;
     }
 
-    $include_terms = $this->parse_term_ids($settings['include_terms'] ?? '');
-    $exclude_terms = $this->parse_term_ids($settings['exclude_terms'] ?? '');
+    $include_terms = self::parse_term_ids($settings['include_terms'] ?? '');
+    $exclude_terms = self::parse_term_ids($settings['exclude_terms'] ?? '');
     $posts_per_term = isset($settings['posts_per_term']) ? (int) $settings['posts_per_term'] : 6;
     if ($posts_per_term === 0 || $posts_per_term < -1) {
       $posts_per_term = -1;
     }
 
-    $term_orderby = $this->sanitize_choice(
-      $settings['orderby'] ?? 'name',
-      ['name', 'id', 'slug', 'menu_order', 'include'],
-      'name'
-    );
-    $term_order = $this->sanitize_choice(
-      $settings['order'] ?? 'ASC',
-      ['ASC', 'DESC'],
-      'ASC'
-    );
-    $post_orderby = $this->sanitize_choice(
-      $settings['post_orderby'] ?? 'date',
-      ['date', 'title', 'ID', 'menu_order', 'rand'],
-      'date'
-    );
-    $post_order = $this->sanitize_choice(
-      $settings['post_order'] ?? 'DESC',
-      ['ASC', 'DESC'],
-      'DESC'
-    );
+    $term_orderby = self::sanitize_choice($settings['orderby'] ?? 'name', self::TERM_ORDERBY_WHITELIST, 'name');
+    $term_order   = self::sanitize_choice($settings['order'] ?? 'ASC', self::TERM_ORDER_WHITELIST, 'ASC');
+    $post_orderby = self::sanitize_choice($settings['post_orderby'] ?? 'date', self::POST_ORDERBY_WHITELIST, 'date');
+    $post_order   = self::sanitize_choice($settings['post_order'] ?? 'DESC', self::POST_ORDER_WHITELIST, 'DESC');
 
     // Fetch terms for the specified taxonomy
     // WordPress already caches get_terms() internally, so no need for transient cache
@@ -750,85 +767,260 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     }
     $terms = get_terms($terms_args);
 
-    if (!empty($terms) && !is_wp_error($terms)) {
-      $posts_by_term = $this->fetch_post_ids_grouped_by_term(
-        $post_type,
-        $taxonomy,
-        wp_list_pluck($terms, 'term_id'),
+    if (is_wp_error($terms)) {
+      if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('Elementor Taxonomy Loop Widget: get_terms() error — ' . $terms->get_error_message());
+      }
+      echo '<p class="error-message">' . esc_html__('No terms found for this taxonomy.', 'elementor-taxonomy-loop') . '</p>';
+      return;
+    }
+
+    if (empty($terms)) {
+      echo '<p class="error-message">' . esc_html__('No terms found for this taxonomy.', 'elementor-taxonomy-loop') . '</p>';
+      return;
+    }
+
+    $lazy_enabled = ('yes' === ($settings['lazy_load'] ?? 'no')) && !$this->is_editor_render();
+    $eager_count  = max(1, (int) ($settings['eager_terms_count'] ?? 2));
+
+    $columns        = (int) ($settings['columns'] ?? 3);
+    $columns_tablet = (int) ($settings['columns_tablet'] ?? 2);
+    $columns_mobile = (int) ($settings['columns_mobile'] ?? 1);
+    $equal_height   = $settings['equal_height'] ?? 'no';
+
+    if ($lazy_enabled) {
+      $lazy_config = [
+        'ajaxUrl'    => admin_url('admin-ajax.php'),
+        'nonce'      => wp_create_nonce(self::AJAX_NONCE_ACTION),
+        'action'     => self::AJAX_ACTION,
+        'postType'   => $post_type,
+        'taxonomy'   => $taxonomy,
+        'skin'       => $skin,
+        'orderby'    => $post_orderby,
+        'order'      => $post_order,
+        'perTerm'    => $posts_per_term,
+        'columns'    => $columns,
+        'cols_t'     => $columns_tablet,
+        'cols_m'     => $columns_mobile,
+        'equal'      => $equal_height,
+      ];
+      $this->add_render_attribute('_wrapper', [
+        'data-taxonomy-loop-lazy'   => '1',
+        'data-taxonomy-loop-config' => wp_json_encode($lazy_config),
+      ]);
+    }
+
+    $eager_term_ids = [];
+    foreach ($terms as $idx => $term) {
+      if (!$lazy_enabled || $idx < $eager_count) {
+        $eager_term_ids[] = (int) $term->term_id;
+      }
+    }
+
+    $posts_by_term = !empty($eager_term_ids)
+      ? self::fetch_post_ids_grouped_by_term(
+          $post_type,
+          $taxonomy,
+          $eager_term_ids,
+          $post_orderby,
+          $post_order,
+          $posts_per_term
+        )
+      : [];
+
+    foreach ($terms as $idx => $term) {
+      $term_id   = (int) $term->term_id;
+      $is_lazy   = $lazy_enabled && $idx >= $eager_count;
+
+      echo '<div class="taxonomy-posts taxonomy-posts-' . esc_attr($term_id) . '">';
+      echo '<div class="term-content">';
+      echo '<h2 class="term-title">' .
+        esc_html($title_prefix) .
+        esc_html($term->name) .
+        esc_html($title_suffix) .
+        '</h2>';
+      if ('yes' === $divider) {
+        echo '<hr class="divider" />';
+      }
+      echo '</div>';
+
+      if ($is_lazy) {
+        echo '<div class="posts-list" data-taxonomy-loop-stub="1" data-term-id="' . esc_attr((string) $term_id) . '">';
+        echo '<p class="taxonomy-loop-loading" aria-busy="true">' . esc_html__('Loading…', 'elementor-taxonomy-loop') . '</p>';
+        echo '</div>';
+        echo '</div>';
+        continue;
+      }
+
+      $post_ids_array = $posts_by_term[$term_id] ?? [];
+
+      echo '<div class="posts-list">';
+      echo self::render_loop_grid_html(
+        $post_ids_array,
+        $skin,
         $post_orderby,
         $post_order,
-        $posts_per_term
+        $columns,
+        $columns_tablet,
+        $columns_mobile,
+        $equal_height
       );
-
-      foreach ($terms as $term) {
-        echo '<div class="taxonomy-posts taxonomy-posts-' . esc_attr($term->term_id) . '">';
-        echo '<div class="term-content">';
-        echo '<h2 class="term-title">' .
-          esc_html($title_prefix) .
-          esc_html($term->name) .
-          esc_html($title_suffix) .
-          '</h2>';
-        if ('yes' === $divider) {
-          echo '<hr class="divider" />';
-        }
-        echo '</div>';
-
-        $post_ids_array = $posts_by_term[(int) $term->term_id] ?? [];
-
-        echo '<div class="posts-list">';
-        if (!empty($post_ids_array)) {
-          //Generate Loop Grid for the current term
-          $loop_builder_module = ProPlugin::instance()->modules_manager->get_modules('loop-builder');
-          if (!$loop_builder_module || !$loop_builder_module->is_active()) {
-            echo '<p class="error-message">' . esc_html__('Loop Builder module not available.', 'elementor-taxonomy-loop') . '</p>';
-            echo '</div>';
-            echo '</div>';
-            continue;
-          }
-
-          // Proceed if loop template is valid
-          if (!empty($skin) && get_post_type($skin) === 'elementor_library') {
-            try {
-              $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
-                'id' => method_exists(ElementorUtils::class, 'generate_random_string')
-                  ? ElementorUtils::generate_random_string()
-                  : substr(md5('loop-grid-' . $term->term_id . wp_rand()), 0, 7),
-                'elType' => 'widget',
-                'widgetType' => 'loop-grid',
-                'settings' => [
-                  'template_id' => $skin,
-                  'post_query_post_type' => 'by_id',
-                  'post_query_posts_ids' => $post_ids_array,
-                  'posts_per_page' => count($post_ids_array),
-                  "post_query_orderby" => $post_orderby,
-                  "post_query_order" => $post_order,
-                  'columns' => $settings['columns'] ?? 3,
-                  "columns_tablet" => $settings['columns_tablet'] ?? 2,
-                  "columns_mobile" => $settings['columns_mobile'] ?? 1,
-                  'equal_height' => $settings['equal_height'] ?? 'no',
-                ],
-              ], []);
-
-              if ($loop_grid) {
-                $loop_grid->print_element();
-              }
-            } catch (\Exception $e) {
-              if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('Elementor Taxonomy Loop Widget Error: ' . $e->getMessage());
-              }
-              echo '<p class="error-message">' . esc_html__('Error generating loop grid.', 'elementor-taxonomy-loop') . '</p>';
-            }
-          } else {
-            echo '<p class="error-message">' . esc_html__('Please select a valid loop template.', 'elementor-taxonomy-loop') . '</p>';
-          }
-        } else {
-          echo '<p class="not-found">' . esc_html__('No posts found for this term.', 'elementor-taxonomy-loop') . '</p>';
-        }
-        echo '</div>';
-        echo '</div>';
-      }
-    } else {
-      echo '<p class="error-message">' . esc_html__('No terms found for this taxonomy.', 'elementor-taxonomy-loop') . '</p>';
+      echo '</div>';
+      echo '</div>';
     }
+  }
+
+  private function is_editor_render(): bool
+  {
+    if (!class_exists('\Elementor\Plugin')) {
+      return false;
+    }
+    $plugin = Elementor::instance();
+    if (isset($plugin->editor) && method_exists($plugin->editor, 'is_edit_mode') && $plugin->editor->is_edit_mode()) {
+      return true;
+    }
+    if (isset($plugin->preview) && method_exists($plugin->preview, 'is_preview_mode') && $plugin->preview->is_preview_mode()) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Render the inner Loop Grid HTML for a single term's post IDs.
+   * Returns a complete inner block for the `.posts-list` container
+   * (either the Loop Grid markup or an error/empty-state paragraph).
+   */
+  private static function render_loop_grid_html(
+    array $post_ids_array,
+    string $skin,
+    string $post_orderby,
+    string $post_order,
+    int $columns,
+    int $columns_tablet,
+    int $columns_mobile,
+    string $equal_height
+  ): string {
+    if (empty($post_ids_array)) {
+      return '<p class="not-found">' . esc_html__('No posts found for this term.', 'elementor-taxonomy-loop') . '</p>';
+    }
+
+    $loop_builder_module = ProPlugin::instance()->modules_manager->get_modules('loop-builder');
+    if (!$loop_builder_module || !$loop_builder_module->is_active()) {
+      return '<p class="error-message">' . esc_html__('Loop Builder module not available.', 'elementor-taxonomy-loop') . '</p>';
+    }
+
+    if (empty($skin) || get_post_type($skin) !== 'elementor_library') {
+      return '<p class="error-message">' . esc_html__('Please select a valid loop template.', 'elementor-taxonomy-loop') . '</p>';
+    }
+
+    try {
+      $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
+        'id' => ElementorUtils::generate_random_string(),
+        'elType' => 'widget',
+        'widgetType' => 'loop-grid',
+        'settings' => [
+          'template_id'          => $skin,
+          'post_query_post_type' => 'by_id',
+          'post_query_posts_ids' => $post_ids_array,
+          'posts_per_page'       => count($post_ids_array),
+          'post_query_orderby'   => $post_orderby,
+          'post_query_order'     => $post_order,
+          'columns'              => $columns,
+          'columns_tablet'       => $columns_tablet,
+          'columns_mobile'       => $columns_mobile,
+          'equal_height'         => $equal_height,
+        ],
+      ], []);
+
+      if (!$loop_grid) {
+        return '<p class="error-message">' . esc_html__('Error generating loop grid.', 'elementor-taxonomy-loop') . '</p>';
+      }
+
+      ob_start();
+      $loop_grid->print_element();
+      return (string) ob_get_clean();
+    } catch (\Exception $e) {
+      if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('Elementor Taxonomy Loop Widget Error: ' . $e->getMessage());
+      }
+      return '<p class="error-message">' . esc_html__('Error generating loop grid.', 'elementor-taxonomy-loop') . '</p>';
+    }
+  }
+
+  /**
+   * AJAX handler: render a single term's Loop Grid HTML.
+   * Re-validates every field — never trust the incoming payload.
+   */
+  public static function ajax_render_term(): void
+  {
+    if (!check_ajax_referer(self::AJAX_NONCE_ACTION, 'nonce', false)) {
+      wp_send_json_error(['message' => __('Invalid request.', 'elementor-taxonomy-loop')], 403);
+    }
+
+    $post_type = isset($_POST['post_type']) ? sanitize_key(wp_unslash($_POST['post_type'])) : '';
+    $taxonomy  = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : '';
+    $term_id   = isset($_POST['term_id']) ? absint(wp_unslash($_POST['term_id'])) : 0;
+    $skin      = isset($_POST['skin']) ? absint(wp_unslash($_POST['skin'])) : 0;
+
+    if (!post_type_exists($post_type) || !taxonomy_exists($taxonomy) || !is_object_in_taxonomy($post_type, $taxonomy)) {
+      wp_send_json_error(['message' => __('Invalid context.', 'elementor-taxonomy-loop')], 400);
+    }
+
+    $term = get_term($term_id, $taxonomy);
+    if (is_wp_error($term) || !$term) {
+      wp_send_json_error(['message' => __('Invalid term.', 'elementor-taxonomy-loop')], 404);
+    }
+
+    if ($skin <= 0 || get_post_type($skin) !== 'elementor_library') {
+      wp_send_json_error(['message' => __('Invalid loop template.', 'elementor-taxonomy-loop')], 400);
+    }
+
+    $orderby = self::sanitize_choice(
+      isset($_POST['orderby']) ? sanitize_key(wp_unslash($_POST['orderby'])) : 'date',
+      self::POST_ORDERBY_WHITELIST,
+      'date'
+    );
+    $order = self::sanitize_choice(
+      isset($_POST['order']) ? strtoupper(sanitize_key(wp_unslash($_POST['order']))) : 'DESC',
+      self::POST_ORDER_WHITELIST,
+      'DESC'
+    );
+
+    $per_term_raw = isset($_POST['per_term']) ? (int) wp_unslash($_POST['per_term']) : 6;
+    if ($per_term_raw === 0 || $per_term_raw < -1) {
+      $per_term_raw = -1;
+    }
+    // Cap to prevent abuse via crafted requests.
+    $per_term = $per_term_raw === -1
+      ? self::LAZY_PER_TERM_MAX
+      : min($per_term_raw, self::LAZY_PER_TERM_MAX);
+
+    $columns        = isset($_POST['columns']) ? max(1, min(12, (int) wp_unslash($_POST['columns']))) : 3;
+    $columns_tablet = isset($_POST['cols_t']) ? max(1, min(12, (int) wp_unslash($_POST['cols_t']))) : 2;
+    $columns_mobile = isset($_POST['cols_m']) ? max(1, min(12, (int) wp_unslash($_POST['cols_m']))) : 1;
+    $equal_height   = (isset($_POST['equal']) && 'yes' === sanitize_key(wp_unslash($_POST['equal']))) ? 'yes' : 'no';
+
+    $posts_by_term = self::fetch_post_ids_grouped_by_term(
+      $post_type,
+      $taxonomy,
+      [$term_id],
+      $orderby,
+      $order,
+      $per_term
+    );
+    $post_ids = $posts_by_term[$term_id] ?? [];
+
+    $html = self::render_loop_grid_html(
+      $post_ids,
+      (string) $skin,
+      $orderby,
+      $order,
+      $columns,
+      $columns_tablet,
+      $columns_mobile,
+      $equal_height
+    );
+
+    wp_send_json_success(['html' => $html]);
   }
 }
