@@ -85,7 +85,7 @@ The widget runs one bounded `WP_Query` per term (capped by **Posts Per Term**), 
 
 ### Lazy loading
 
-Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint then only queries and renders the first _N_ terms (default `2`). Remaining terms emit a stub that the bundled loader swaps for real content when it scrolls into view — one `admin-ajax.php` request per term, with a 200px pre-load margin. If IntersectionObserver isn't available, stubs load immediately instead of never.
+Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint then only queries and renders the first _N_ terms (default `2`). Remaining terms emit a stub that the bundled loader swaps for real content when it scrolls into view — one `admin-ajax.php` request per term, with a 200px pre-load margin.
 
 Setting **Eager-Rendered Terms** to a value that covers your above-the-fold area keeps LCP fast; everything beyond loads on demand.
 
