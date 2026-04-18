@@ -5,6 +5,7 @@ if (! defined('ABSPATH')) {
 
 use ElementorPro\Plugin as ProPlugin;
 use Elementor\Plugin as Elementor;
+use Elementor\Utils as ElementorUtils;
 use ElementorPro\Core\Utils as Pro_Utils;
 use ElementorPro\Modules\QueryControl\Controls\Template_Query;
 use ElementorPro\Modules\QueryControl\Module as QueryControlModule;
@@ -30,11 +31,14 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
   }
 
   /**
-   * Fetch post IDs for all given terms in two queries and bucket them by term.
-   * Replaces a per-term get_posts() loop (N+1) with one WP_Query + one
-   * wp_get_object_terms() call.
+   * Fetch post IDs for each term, capped at $per_term per term.
    *
-   * @return array<int, int[]> map of term_id => ordered post IDs, capped at $per_term
+   * Runs one bounded query per term so that uneven post distribution across
+   * terms can't starve later buckets (a single consolidated query ordered by
+   * date/title can exhaust its window on the first term and leave the rest
+   * empty).
+   *
+   * @return array<int, int[]> map of term_id => ordered post IDs
    */
   private function fetch_post_ids_grouped_by_term(
     string $post_type,
@@ -47,55 +51,24 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     $term_ids = array_values(array_unique(array_map('intval', $term_ids)));
     $grouped = array_fill_keys($term_ids, []);
 
-    if (empty($term_ids)) {
-      return $grouped;
-    }
-
-    $posts_per_page = $per_term === -1 ? -1 : $per_term * count($term_ids);
-
-    $post_ids = get_posts([
-      'post_type'              => $post_type,
-      'posts_per_page'         => $posts_per_page,
-      'tax_query'              => [
-        [
-          'taxonomy' => $taxonomy,
-          'field'    => 'term_id',
-          'terms'    => $term_ids,
+    foreach ($term_ids as $term_id) {
+      $grouped[$term_id] = get_posts([
+        'post_type'              => $post_type,
+        'posts_per_page'         => $per_term,
+        'tax_query'              => [
+          [
+            'taxonomy' => $taxonomy,
+            'field'    => 'term_id',
+            'terms'    => [$term_id],
+          ],
         ],
-      ],
-      'orderby'                => $orderby,
-      'order'                  => $order,
-      'fields'                 => 'ids',
-      'no_found_rows'          => true,
-      'update_post_meta_cache' => false,
-      'update_post_term_cache' => false,
-    ]);
-
-    if (empty($post_ids)) {
-      return $grouped;
-    }
-
-    $object_terms = wp_get_object_terms($post_ids, $taxonomy, ['fields' => 'all_with_object_id']);
-    if (is_wp_error($object_terms) || empty($object_terms)) {
-      return $grouped;
-    }
-
-    $terms_by_post = [];
-    foreach ($object_terms as $ot) {
-      $terms_by_post[(int) $ot->object_id][] = (int) $ot->term_id;
-    }
-
-    foreach ($post_ids as $post_id) {
-      $post_id = (int) $post_id;
-      foreach ($terms_by_post[$post_id] ?? [] as $tid) {
-        if (!isset($grouped[$tid])) {
-          continue;
-        }
-        if ($per_term !== -1 && count($grouped[$tid]) >= $per_term) {
-          continue;
-        }
-        $grouped[$tid][] = $post_id;
-      }
+        'orderby'                => $orderby,
+        'order'                  => $order,
+        'fields'                 => 'ids',
+        'no_found_rows'          => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
+      ]);
     }
 
     return $grouped;
@@ -133,7 +106,7 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 
   public function get_style_depends(): array
   {
-    return ['taxonomy-loop-style', 'elementor-pro'];
+    return ['taxonomy-loop-style'];
   }
 
   // Register Controls
@@ -807,7 +780,9 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
           if (!empty($skin) && get_post_type($skin) === 'elementor_library') {
             try {
               $loop_grid = Elementor::instance()->elements_manager->create_element_instance([
-                'id' => 'loop-grid-' . $term->term_id,
+                'id' => method_exists(ElementorUtils::class, 'generate_random_string')
+                  ? ElementorUtils::generate_random_string()
+                  : substr(md5('loop-grid-' . $term->term_id . wp_rand()), 0, 7),
                 'elType' => 'widget',
                 'widgetType' => 'loop-grid',
                 'settings' => [
