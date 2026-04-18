@@ -1,0 +1,8 @@
+# Normalise line endings for text files.
+* text=auto eol=lf
+
+# Exclude development-only paths from archive exports (GitHub "Download ZIP",
+# git archive, release zips) so installed plugin folders stay clean.
+/.github              export-ignore
+/.gitattributes       export-ignore
+/.gitignore           export-ignore

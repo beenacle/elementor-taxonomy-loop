@@ -25,10 +25,20 @@ The Taxonomy Loop widget allows you to:
 
 ## Installation
 
-1. Download the plugin zip file
-2. Go to WordPress admin panel > Plugins > Add New
-3. Click "Upload Plugin" and select the downloaded zip file
-4. Click "Install Now" and then "Activate"
+### From a GitHub release (recommended)
+
+1. Go to the [Releases](https://github.com/beenacle/elementor-taxonomy-loop/releases) page and download the latest `elementor-taxonomy-loop.zip` asset.
+2. In WordPress admin, open **Plugins → Add New → Upload Plugin** and select the downloaded zip.
+3. Click **Install Now**, then **Activate**.
+4. Ensure **Elementor** and **Elementor Pro** are active; the widget will not register without them.
+
+### From the main branch
+
+Cloning or downloading the `main` branch works too, but unpack the archive into `wp-content/plugins/elementor-taxonomy-loop/` (no trailing commit hash in the folder name) so WordPress picks it up as a stable plugin directory.
+
+### Updates
+
+This plugin is distributed via GitHub and is not listed on wordpress.org, so WordPress will not notify you of new versions automatically. To enable auto-updates from GitHub, install a companion plugin such as [Git Updater](https://git-updater.com/). Otherwise, download each new release and re-upload via **Plugins → Add New → Upload Plugin** (WordPress will replace the existing install).
 
 ## Usage
 
@@ -71,7 +81,10 @@ For support, feature requests, or bug reports, please visit our [contact page](h
 ## Changelog
 
 ### 1.1.0
-* Require Elementor Pro as a hard dependency; widget now registers only when Pro is active.
+* Require Elementor Pro as a hard dependency; widget now registers only when Pro is active, with an admin notice when it isn't.
+* Namespace-prefix the widget class (`Beenacle_Taxonomy_Loop`) to avoid global class collisions.
+* Load the plugin text domain for self-hosted installs and ship a `/languages` directory.
+* Gate debug `error_log()` calls behind `WP_DEBUG`.
 * Replace the per-term query loop with two consolidated queries (1 WP_Query + 1 wp_get_object_terms) bucketed in PHP.
 * Rename the `show_empty` control to `hide_empty`; existing widget instances keep their saved toggle via a raw-data fallback.
 * Whitelist `orderby`/`order` values before passing to WP_Query.

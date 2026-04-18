@@ -10,7 +10,7 @@ use ElementorPro\Modules\QueryControl\Controls\Template_Query;
 use ElementorPro\Modules\QueryControl\Module as QueryControlModule;
 use ElementorPro\Modules\LoopBuilder\Documents\Loop as LoopDocument;
 
-class Taxonomy_Loop extends \Elementor\Widget_Base
+class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 {
   private function parse_term_ids($value): array
   {
@@ -146,9 +146,8 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
     foreach ($public_types as $type => $title) {
       $taxonomies = get_object_taxonomies($type, 'objects');
       foreach ($taxonomies as $key => $tax) {
-        if (!in_array($tax->name, $supported_taxonomies)) {
-          $label = $tax->label . ' (' . $tax->name . ')';
-          $supported_taxonomies[$tax->name] = $label;
+        if (!isset($supported_taxonomies[$tax->name])) {
+          $supported_taxonomies[$tax->name] = $tax->label . ' (' . $tax->name . ')';
         }
       }
     }
@@ -786,7 +785,7 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
           esc_html($term->name) .
           esc_html($title_suffix) .
           '</h2>';
-        if ($divider == 'yes') {
+        if ('yes' === $divider) {
           echo '<hr class="divider" />';
         }
         echo '</div>';
@@ -829,7 +828,9 @@ class Taxonomy_Loop extends \Elementor\Widget_Base
                 $loop_grid->print_element();
               }
             } catch (\Exception $e) {
-              error_log('Elementor Taxonomy Loop Widget Error: ' . $e->getMessage());
+              if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Elementor Taxonomy Loop Widget Error: ' . $e->getMessage());
+              }
               echo '<p class="error-message">' . esc_html__('Error generating loop grid.', 'elementor-taxonomy-loop') . '</p>';
             }
           } else {
