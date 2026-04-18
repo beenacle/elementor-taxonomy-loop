@@ -1,0 +1,21 @@
+{
+  "name": "beenacle/elementor-taxonomy-loop",
+  "description": "Elementor Pro add-on that renders a grouped taxonomy loop.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=7.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6",
+    "brain/monkey": "^2.6"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Beenacle\\TaxonomyLoop\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}

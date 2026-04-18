@@ -23,3 +23,7 @@ package-lock.json
 # Environment files
 .env
 *.log
+
+# PHPUnit
+.phpunit.result.cache
+.phpunit.cache/

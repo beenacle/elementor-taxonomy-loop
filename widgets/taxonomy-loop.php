@@ -13,7 +13,7 @@ use ElementorPro\Modules\LoopBuilder\Documents\Loop as LoopDocument;
 
 class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 {
-  private function parse_term_ids($value): array
+  private static function parse_term_ids($value): array
   {
     if (!is_string($value) || trim($value) === '') {
       return [];
@@ -37,6 +37,7 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
   private const AJAX_ACTION            = 'elementor_taxonomy_loop_render_term';
   private const AJAX_NONCE_ACTION      = 'elementor_taxonomy_loop_render';
   private const LAZY_PER_TERM_MAX      = 100;
+  private const CACHE_GROUP            = 'elementor_taxonomy_loop';
 
   /**
    * Fetch post IDs for each term, capped at $per_term per term.
@@ -44,7 +45,9 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
    * Runs one bounded query per term so that uneven post distribution across
    * terms can't starve later buckets (a single consolidated query ordered by
    * date/title can exhaust its window on the first term and leave the rest
-   * empty).
+   * empty). Each per-term result is memoized via the object cache under a
+   * key versioned with `wp_cache_get_last_changed('posts' | 'terms')`, so
+   * post/term writes invalidate the entry automatically.
    *
    * @return array<int, int[]> map of term_id => ordered post IDs
    */
@@ -59,8 +62,29 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     $term_ids = array_values(array_unique(array_map('intval', $term_ids)));
     $grouped = array_fill_keys($term_ids, []);
 
+    $last_changed_posts = function_exists('wp_cache_get_last_changed') ? wp_cache_get_last_changed('posts') : '';
+    $last_changed_terms = function_exists('wp_cache_get_last_changed') ? wp_cache_get_last_changed('terms') : '';
+
     foreach ($term_ids as $term_id) {
-      $grouped[$term_id] = get_posts([
+      $cache_key = sprintf(
+        'posts:%s:%s:%d:%s:%s:%d:%s:%s',
+        $post_type,
+        $taxonomy,
+        $term_id,
+        $orderby,
+        $order,
+        $per_term,
+        $last_changed_posts,
+        $last_changed_terms
+      );
+
+      $cached = wp_cache_get($cache_key, self::CACHE_GROUP);
+      if (is_array($cached)) {
+        $grouped[$term_id] = $cached;
+        continue;
+      }
+
+      $post_ids = get_posts([
         'post_type'              => $post_type,
         'posts_per_page'         => $per_term,
         'tax_query'              => [
@@ -77,6 +101,9 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
       ]);
+
+      $grouped[$term_id] = $post_ids;
+      wp_cache_set($cache_key, $post_ids, self::CACHE_GROUP);
     }
 
     return $grouped;
@@ -120,13 +147,12 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
   // Register Controls
   protected function register_controls(): void
   {
-    //Get Post Types & public taxanomies
+    // Collect public post types and the union of their registered taxonomies.
     $supported_taxonomies = [];
     $public_types = Pro_Utils::get_public_post_types();
 
     foreach ($public_types as $type => $title) {
-      $taxonomies = get_object_taxonomies($type, 'objects');
-      foreach ($taxonomies as $key => $tax) {
+      foreach (get_object_taxonomies($type, 'objects') as $tax) {
         if (!isset($supported_taxonomies[$tax->name])) {
           $supported_taxonomies[$tax->name] = $tax->label . ' (' . $tax->name . ')';
         }
@@ -735,8 +761,8 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
       return;
     }
 
-    $include_terms = $this->parse_term_ids($settings['include_terms'] ?? '');
-    $exclude_terms = $this->parse_term_ids($settings['exclude_terms'] ?? '');
+    $include_terms = self::parse_term_ids($settings['include_terms'] ?? '');
+    $exclude_terms = self::parse_term_ids($settings['exclude_terms'] ?? '');
     $posts_per_term = isset($settings['posts_per_term']) ? (int) $settings['posts_per_term'] : 6;
     if ($posts_per_term === 0 || $posts_per_term < -1) {
       $posts_per_term = -1;
@@ -770,7 +796,15 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     }
     $terms = get_terms($terms_args);
 
-    if (empty($terms) || is_wp_error($terms)) {
+    if (is_wp_error($terms)) {
+      if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('Elementor Taxonomy Loop Widget: get_terms() error — ' . $terms->get_error_message());
+      }
+      echo '<p class="error-message">' . esc_html__('No terms found for this taxonomy.', 'elementor-taxonomy-loop') . '</p>';
+      return;
+    }
+
+    if (empty($terms)) {
       echo '<p class="error-message">' . esc_html__('No terms found for this taxonomy.', 'elementor-taxonomy-loop') . '</p>';
       return;
     }

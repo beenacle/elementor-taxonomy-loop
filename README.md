@@ -89,11 +89,29 @@ Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint
 
 Setting **Eager-Rendered Terms** to a value that covers your above-the-fold area keeps LCP fast; everything beyond loads on demand.
 
+## Development
+
+Clone the repo and install dev dependencies:
+
+```
+composer install
+composer test
+```
+
+The test suite uses PHPUnit 9 + Brain Monkey and runs without a WordPress install — `tests/stubs/` ships minimal Elementor / Elementor Pro class stubs, and Brain Monkey mocks the WP functions the widget calls.
+
 ## Support
 
 For support, feature requests, or bug reports, please visit [beenacle.com/contact-us](https://beenacle.com/contact-us/) or open an issue on this repo.
 
 ## Changelog
+
+### 1.2.1
+* Object-cache the per-term post-ID lookup, keyed by post type / taxonomy / term / ordering / cap and versioned with `wp_cache_get_last_changed('posts' | 'terms')` so entries invalidate automatically on post and term-relationship writes.
+* Localize the JS error string via `wp_localize_script` and escape it on the client before insertion.
+* `error_log()` on `get_terms()` returning `WP_Error` when `WP_DEBUG` is on.
+* Housekeeping: `parse_term_ids` is now `private static`, comment typo fixed, unused `foreach` key dropped.
+* Add PHPUnit + Brain Monkey smoke tests covering `sanitize_choice`, `parse_term_ids`, the one-bounded-query-per-term contract (starvation-bug regression), the object-cache hit/miss path, and the AJAX handler's nonce / post-type / taxonomy / skin / term validation paths. Run with `composer install && composer test`.
 
 ### 1.2.0
 * Add lazy loading: when **Lazy Load Terms** is on, terms beyond the "Eager-Rendered Terms" count emit a stub that's filled in via AJAX when it scrolls into view. Default is **off** (opt-in) to avoid surprising existing installs; default eager count is `2`.

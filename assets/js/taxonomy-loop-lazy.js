@@ -24,8 +24,19 @@
     }
   }
 
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function renderError(stub) {
-    stub.innerHTML = '<p class="error-message">Unable to load posts for this term.</p>';
+    var l10n = window.ElementorTaxonomyLoopL10n || {};
+    var message = l10n.errorMessage || 'Unable to load posts for this term.';
+    stub.innerHTML = '<p class="error-message">' + escapeHtml(message) + '</p>';
     stub.removeAttribute('aria-busy');
   }
 
