@@ -32,7 +32,7 @@ This plugin is not listed on wordpress.org, so core won't surface update notific
 1. Open a page in the Elementor editor.
 2. Search for **Taxonomy Loop** in the widget panel and drop it onto the canvas.
 3. Pick the **Post Type**, **Taxonomy**, and a **Loop Skin** (create one inline if you don't have a template yet).
-4. Adjust filtering, ordering, and styling in the panel. The widget renders each term as `<div class="taxonomy-posts"> … <div class="posts-list">…Loop Grid…</div> </div>`.
+4. Adjust filtering, ordering, and styling in the panel. See [Rendered markup](#rendered-markup) below for the exact HTML each term produces.
 
 ## Controls
 

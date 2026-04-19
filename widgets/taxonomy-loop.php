@@ -744,8 +744,6 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
     $post_orderby = self::sanitize_choice($settings['post_orderby'] ?? 'date', self::POST_ORDERBY_WHITELIST, 'date');
     $post_order   = self::sanitize_choice($settings['post_order'] ?? 'DESC', self::POST_ORDER_WHITELIST, 'DESC');
 
-    // Fetch terms for the specified taxonomy
-    // WordPress already caches get_terms() internally, so no need for transient cache
     // Read raw saved data for the legacy `show_empty` key: get_settings_for_display()
     // fills in defaults for registered controls, so the new `hide_empty` key is
     // never null and a ?? fallback on $settings would never reach the legacy value.
@@ -872,17 +870,8 @@ class Beenacle_Taxonomy_Loop extends \Elementor\Widget_Base
 
   private function is_editor_render(): bool
   {
-    if (!class_exists('\Elementor\Plugin')) {
-      return false;
-    }
     $plugin = Elementor::instance();
-    if (isset($plugin->editor) && method_exists($plugin->editor, 'is_edit_mode') && $plugin->editor->is_edit_mode()) {
-      return true;
-    }
-    if (isset($plugin->preview) && method_exists($plugin->preview, 'is_preview_mode') && $plugin->preview->is_preview_mode()) {
-      return true;
-    }
-    return false;
+    return $plugin->editor->is_edit_mode() || $plugin->preview->is_preview_mode();
   }
 
   /**
