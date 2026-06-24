@@ -28,6 +28,10 @@ define('ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__);
 define('ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path(__FILE__));
 define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
 
+// GitHub-Releases self-updater (shared across beenacle plugins).
+require_once ELEMENTOR_TAXONOMY_LOOP_PATH . 'includes/GitHubUpdater.php';
+( new \Beenacle\ElementorTaxonomyLoop\GitHubUpdater( ELEMENTOR_TAXONOMY_LOOP_FILE, 'beenacle', 'elementor-taxonomy-loop' ) )->register();
+
 function elementor_taxonomy_loop_load_textdomain()
 {
   load_plugin_textdomain(
