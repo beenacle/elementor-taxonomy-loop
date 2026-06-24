@@ -1,44 +1,174 @@
 name: Release
 
+# Unified release workflow — identical across the beenacle plugin repos.
+#
+# Two ways to release; both build the production zip and publish/update the GitHub
+# Release (the in-plugin GitHub-Releases updater then offers it to installed sites):
+#   1. Bump the "Version:" in the main plugin file and push to the default branch →
+#      auto-tagged vX.Y.Z and released — but ONLY when that version has no tag yet,
+#      so routine pushes never release. Put "[skip release]" in the commit to hold.
+#   2. Push a vX.Y.Z tag, or run this workflow manually against an existing tag →
+#      released immediately.
+#
+# Self-adapting — no per-repo edits:
+#   * main file   = the root *.php carrying a "Plugin Name:" / "Version:" header
+#   * version     = that header (and any *_VERSION define is stamped to match)
+#   * deps        = composer install --no-dev only if composer.json exists AND
+#                   vendor/ is not committed
+#   * notes       = the version's section from CHANGELOG.md, else readme.txt, else
+#                   GitHub's auto-generated notes
+#   * dist files  = .distignore if present, else a sensible default exclude set
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing vX.Y.Z tag to (re)build and publish'
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  build-release:
-    name: Build and publish release zip
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history + tags, to detect an already-released version
 
-      - name: Verify plugin version matches tag
+      - name: Detect plugin and decide whether to release
+        id: meta
         run: |
-          tag_version="${GITHUB_REF_NAME#v}"
-          header_version=$(grep -E "^ \* Version:" elementor-taxonomy-loop.php | awk -F: '{print $2}' | xargs)
-          constant_version=$(grep -E "ELEMENTOR_TAXONOMY_LOOP_VERSION" elementor-taxonomy-loop.php | head -n1 | sed -E "s/.*'([0-9.]+)'.*/\1/")
-          echo "Tag:      ${tag_version}"
-          echo "Header:   ${header_version}"
-          echo "Constant: ${constant_version}"
-          if [ "${tag_version}" != "${header_version}" ] || [ "${tag_version}" != "${constant_version}" ]; then
-            echo "::error::Tag, plugin header, and version constant must match."
-            exit 1
+          set -euo pipefail
+
+          # --- main plugin file: root *.php with a Plugin Name header (fallback: a Version header) ---
+          MAIN=""
+          for f in *.php; do
+            [ -f "$f" ] || continue
+            if grep -qiE '^[[:space:]]*\*?[[:space:]]*Plugin Name:' "$f"; then MAIN="$f"; break; fi
+          done
+          if [ -z "$MAIN" ]; then
+            for f in *.php; do
+              [ -f "$f" ] || continue
+              if grep -qE '^[[:space:]]*\*?[[:space:]]*Version:' "$f"; then MAIN="$f"; break; fi
+            done
+          fi
+          [ -n "$MAIN" ] || { echo "::error::No root *.php with a Version: header found"; exit 1; }
+          SLUG="${MAIN%.php}"
+          HEADER_VERSION=$(grep -E '^[[:space:]]*\*?[[:space:]]*Version:' "$MAIN" | head -1 | sed -E 's/.*Version:[[:space:]]*//' | tr -d '[:space:]\r')
+          [ -n "$HEADER_VERSION" ] || { echo "::error::Could not read Version: from $MAIN"; exit 1; }
+
+          # --- resolve version + whether to release ---
+          RELEASE=false
+          IS_TAG=false
+          case "${GITHUB_REF:-}" in refs/tags/*) IS_TAG=true ;; esac
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"; VERSION="${VERSION#v}"; RELEASE=true
+          elif [ "$IS_TAG" = "true" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"; RELEASE=true
+          else
+            VERSION="$HEADER_VERSION"
+            if printf '%s' "$(git log -1 --pretty=%B)" | grep -qiE '\[(skip|no)[ -]?release\]'; then
+              echo "Holding: commit message opts out ([skip release])."
+            elif git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+              echo "Holding: tag v$VERSION already exists (version unchanged)."
+            else
+              echo "New version v$VERSION — will tag and release."; RELEASE=true
+            fi
           fi
 
-      - name: Build release zip
-        run: |
-          git archive \
-            --format=zip \
-            --prefix=elementor-taxonomy-loop/ \
-            --output=elementor-taxonomy-loop.zip \
-            HEAD
+          # Tag/manual builds must match the plugin header (guards a mistagged release).
+          if [ "$RELEASE" = "true" ] && { [ "$IS_TAG" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; } && [ "$VERSION" != "$HEADER_VERSION" ]; then
+            echo "::error::Release version v$VERSION does not match $MAIN Version: $HEADER_VERSION"; exit 1
+          fi
 
-      - name: Publish GitHub Release
+          # Need composer only when there are REAL runtime deps (a require key beyond
+          # php / ext-*) AND vendor/ isn't already committed. Platform-only composer.json
+          # (e.g. just {"php": ">=7.4"}) is left alone — no useless vendor/ in the zip.
+          NEED_COMPOSER=false
+          if [ -f composer.json ] && [ ! -d vendor ]; then
+            if jq -e '((.require // {}) | keys - ["php"] | map(select(startswith("ext-") | not)) | length) > 0' composer.json >/dev/null 2>&1; then
+              NEED_COMPOSER=true
+            fi
+          fi
+
+          echo "main=$MAIN"                   >> "$GITHUB_OUTPUT"
+          echo "slug=$SLUG"                   >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"             >> "$GITHUB_OUTPUT"
+          echo "release=$RELEASE"             >> "$GITHUB_OUTPUT"
+          echo "need_composer=$NEED_COMPOSER" >> "$GITHUB_OUTPUT"
+          echo "Detected $MAIN (slug=$SLUG) header=$HEADER_VERSION → release=$RELEASE version=$VERSION need_composer=$NEED_COMPOSER"
+
+      - name: Setup PHP + Composer
+        if: steps.meta.outputs.release == 'true' && steps.meta.outputs.need_composer == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer:v2
+
+      - name: Install production dependencies
+        if: steps.meta.outputs.release == 'true' && steps.meta.outputs.need_composer == 'true'
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Build plugin zip
+        if: steps.meta.outputs.release == 'true'
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.meta.outputs.version }}"
+          MAIN="${{ steps.meta.outputs.main }}"
+          SLUG="${{ steps.meta.outputs.slug }}"
+
+          # Stamp the resolved version into the header AND any *_VERSION constant, so
+          # the shipped plugin can never report an older version than its release.
+          sed -i -E "s/^([[:space:]]*\*?[[:space:]]*Version:[[:space:]]*).*/\1${VERSION}/" "$MAIN"
+          sed -i -E "s/(define\([[:space:]]*'[A-Z0-9_]*_VERSION'[[:space:]]*,[[:space:]]*')[^']*('[[:space:]]*\)[[:space:]]*;?)/\1${VERSION}\2/" "$MAIN"
+
+          DEST="$RUNNER_TEMP/$SLUG"
+          mkdir -p "$DEST"
+          if [ -f .distignore ]; then
+            rsync -a --exclude='.git' --exclude-from=.distignore ./ "$DEST/"
+          else
+            rsync -a \
+              --exclude='.git' --exclude='.github' --exclude='.gitignore' \
+              --exclude='.gitattributes' --exclude='.distignore' --exclude='.DS_Store' \
+              --exclude='dist' --exclude='build' --exclude='node_modules' \
+              --exclude='tests' --exclude='*.log' --exclude='composer.phar' \
+              ./ "$DEST/"
+          fi
+          ( cd "$RUNNER_TEMP" && zip -rq "$GITHUB_WORKSPACE/$SLUG.zip" "$SLUG" )
+
+          TOP=$(unzip -Z1 "$GITHUB_WORKSPACE/$SLUG.zip" | head -1)
+          [ "$TOP" = "$SLUG/" ] || { echo "::error::Zip top-level is '$TOP', expected '$SLUG/'"; exit 1; }
+          echo "Built $SLUG.zip for v$VERSION"
+
+      - name: Extract release notes
+        if: steps.meta.outputs.release == 'true'
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.meta.outputs.version }}"
+          NOTES="$RUNNER_TEMP/release-notes.md"
+          : > "$NOTES"
+          if [ -f CHANGELOG.md ]; then
+            awk -v v="$VERSION" 'BEGIN{re="^##[[:space:]]+v?" v "([^0-9.]|$)"} $0 ~ re {g=1; next} /^##/ {g=0} g {print}' CHANGELOG.md > "$NOTES" || true
+          fi
+          if [ ! -s "$NOTES" ] && [ -f readme.txt ]; then
+            awk -v v="$VERSION" 'BEGIN{re="^=[[:space:]]+v?" v "([^0-9.]|$)"} $0 ~ re {g=1; next} /^==/ {g=0} /^=[[:space:]]/ {g=0} g {print}' readme.txt > "$NOTES" || true
+          fi
+          if [ ! -s "$NOTES" ]; then echo "See the commit history for the changes in v$VERSION." > "$NOTES"; fi
+          echo "----- release notes for v$VERSION -----"; cat "$NOTES"
+
+      - name: Publish release with asset
+        if: steps.meta.outputs.release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: elementor-taxonomy-loop.zip
+          tag_name: v${{ steps.meta.outputs.version }}
+          name: v${{ steps.meta.outputs.version }}
+          body_path: ${{ runner.temp }}/release-notes.md
+          files: ${{ steps.meta.outputs.slug }}.zip
           generate_release_notes: true
+          make_latest: true
