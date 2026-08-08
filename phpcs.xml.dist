@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<ruleset name="Elementor Taxonomy Loop Widget">
+	<description>WordPress coding standards for the Elementor Taxonomy Loop Widget.</description>
+
+	<file>.</file>
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<!--
+		The self-updater is shared byte-for-byte across the beenacle plugins (only its
+		namespace line differs). Reformatting this copy would fork it from the others,
+		so it keeps its own upstream style.
+	-->
+	<exclude-pattern>/includes/GitHubUpdater\.php</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="parallel" value="8"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<config name="minimum_wp_version" value="6.0"/>
+	<config name="testVersion" value="7.4-"/>
+
+	<rule ref="WordPress">
+		<!-- Class files are named after their class so the PSR-4 style autoloader can find them. -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="elementor-taxonomy-loop"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="elementor_taxonomy_loop"/>
+				<element value="ELEMENTOR_TAXONOMY_LOOP"/>
+				<element value="Beenacle\ElementorTaxonomyLoop"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		bin/ holds maintainer CLI scripts that never load inside WordPress, so the
+		runtime-oriented sniffs do not apply there. Formatting, docs and
+		PHPCompatibility still do.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>/bin/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>/bin/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>/bin/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security.EscapeOutput">
+		<exclude-pattern>/bin/*</exclude-pattern>
+	</rule>
+
+	<rule ref="PHPCompatibilityWP"/>
+</ruleset>

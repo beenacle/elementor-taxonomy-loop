@@ -1,0 +1,75 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: PHP ${{ matrix.php }} syntax
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Lint every PHP file
+        run: |
+          set -euo pipefail
+          find . -path ./vendor -prune -o -path ./node_modules -prune -o -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l
+
+  coding-standards:
+    name: WordPress coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dev dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: PHP_CodeSniffer
+        run: composer run-script cs -- --report=full
+
+  assets:
+    name: Front-end assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: JavaScript syntax
+        run: |
+          set -euo pipefail
+          for file in assets/js/*.js; do
+            node --check "$file"
+          done
+
+      - name: Translation template is up to date
+        run: |
+          set -euo pipefail
+          cp languages/elementor-taxonomy-loop.pot /tmp/committed.pot
+          php bin/make-pot.php
+          diff -u /tmp/committed.pot languages/elementor-taxonomy-loop.pot \
+            || { echo "::error::languages/*.pot is stale — run: php bin/make-pot.php"; exit 1; }

@@ -2,9 +2,10 @@
 /**
  * Plugin Name:       Elementor Taxonomy Loop Widget
  * Plugin URI:        https://github.com/beenacle/elementor-taxonomy-loop
- * Description:       A powerful Elementor widget for displaying taxonomy terms with custom loop templates.
- * Version:           1.2.2
+ * Description:       Group posts by taxonomy term in Elementor Pro. Every category, tag, brand or custom term gets its own heading and its own Loop Grid, rendered from a template you design in the Loop Builder.
+ * Version:           2.0.0
  * Requires at least: 6.0
+ * Tested up to:      7.0
  * Requires PHP:      7.4
  * Author:            Beenacle
  * Author URI:        https://beenacle.com
@@ -14,115 +15,48 @@
  * Domain Path:       /languages
  * Update URI:        https://github.com/beenacle/elementor-taxonomy-loop
  *
- * Requires Plugins: elementor, elementor-pro
- * Elementor tested up to: 3.25.0
- * Elementor Pro tested up to: 3.25.0
+ * Requires Plugins:  elementor, elementor-pro
+ * Elementor tested up to:     4.2.2
+ * Elementor Pro tested up to: 4.2.2
+ *
+ * @package Beenacle\ElementorTaxonomyLoop
  */
 
-if (!defined('ABSPATH')) {
-  exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
-define('ELEMENTOR_TAXONOMY_LOOP_VERSION', '1.2.2');
-define('ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__);
-define('ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path(__FILE__));
-define('ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url('/', __FILE__));
+define( 'ELEMENTOR_TAXONOMY_LOOP_VERSION', '2.0.0' );
+define( 'ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__ );
+define( 'ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path( __FILE__ ) );
+define( 'ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url( '/', __FILE__ ) );
+
+/**
+ * Minimal PSR-4 style autoloader for the plugin namespace.
+ *
+ * Keeps the shipped zip dependency-free — there is no Composer vendor directory
+ * to install or to keep in sync with the release artifact.
+ *
+ * @param string $class_name Fully qualified class name being loaded.
+ * @return void
+ */
+function elementor_taxonomy_loop_autoload( $class_name ) {
+	$prefix = 'Beenacle\\ElementorTaxonomyLoop\\';
+
+	if ( 0 !== strpos( $class_name, $prefix ) ) {
+		return;
+	}
+
+	$relative_class = substr( $class_name, strlen( $prefix ) );
+	$path           = ELEMENTOR_TAXONOMY_LOOP_PATH . 'includes/' . str_replace( '\\', '/', $relative_class ) . '.php';
+
+	if ( is_readable( $path ) ) {
+		require_once $path;
+	}
+}
+spl_autoload_register( 'elementor_taxonomy_loop_autoload' );
 
 // GitHub-Releases self-updater (shared across beenacle plugins).
-require_once ELEMENTOR_TAXONOMY_LOOP_PATH . 'includes/GitHubUpdater.php';
 ( new \Beenacle\ElementorTaxonomyLoop\GitHubUpdater( ELEMENTOR_TAXONOMY_LOOP_FILE, 'beenacle', 'elementor-taxonomy-loop' ) )->register();
 
-function elementor_taxonomy_loop_load_textdomain()
-{
-  load_plugin_textdomain(
-    'elementor-taxonomy-loop',
-    false,
-    dirname(plugin_basename(ELEMENTOR_TAXONOMY_LOOP_FILE)) . '/languages'
-  );
-}
-add_action('init', 'elementor_taxonomy_loop_load_textdomain');
-
-function elementor_taxonomy_loop_missing_pro_notice()
-{
-  if (class_exists('\ElementorPro\Plugin')) {
-    return;
-  }
-  printf(
-    '<div class="notice notice-error"><p>%s</p></div>',
-    esc_html__('Elementor Taxonomy Loop Widget requires Elementor Pro to be installed and active.', 'elementor-taxonomy-loop')
-  );
-}
-add_action('admin_notices', 'elementor_taxonomy_loop_missing_pro_notice');
-
-function elementor_taxonomy_loop_widgets($widgets_manager)
-{
-  if (!class_exists('\ElementorPro\Plugin')) {
-    return;
-  }
-
-  $widget_file = ELEMENTOR_TAXONOMY_LOOP_PATH . 'widgets/taxonomy-loop.php';
-
-  if (file_exists($widget_file)) {
-    require_once($widget_file);
-    $widgets_manager->register(new \Beenacle_Taxonomy_Loop());
-  } elseif (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('Elementor Taxonomy Loop Widget: Widget file not found at ' . $widget_file);
-  }
-}
-add_action('elementor/widgets/register', 'elementor_taxonomy_loop_widgets');
-
-// Register styles for widgets. Elementor will enqueue them via get_style_depends().
-function elementor_taxonomy_loop_widgets_styles()
-{
-  if (file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/css/taxonomy-loop.css')) {
-    wp_register_style(
-      'taxonomy-loop-style',
-      ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/css/taxonomy-loop.css',
-      [],
-      ELEMENTOR_TAXONOMY_LOOP_VERSION
-    );
-  }
-}
-add_action('elementor/frontend/after_register_styles', 'elementor_taxonomy_loop_widgets_styles');
-
-// Register the lazy-load script. Elementor will enqueue it via get_script_depends()
-// only on pages that actually contain the widget.
-function elementor_taxonomy_loop_widgets_scripts()
-{
-  if (!file_exists(ELEMENTOR_TAXONOMY_LOOP_PATH . 'assets/js/taxonomy-loop-lazy.js')) {
-    return;
-  }
-  wp_register_script(
-    'elementor-taxonomy-loop-lazy',
-    ELEMENTOR_TAXONOMY_LOOP_URL . 'assets/js/taxonomy-loop-lazy.js',
-    [],
-    ELEMENTOR_TAXONOMY_LOOP_VERSION,
-    true
-  );
-  wp_localize_script(
-    'elementor-taxonomy-loop-lazy',
-    'ElementorTaxonomyLoopL10n',
-    [
-      'errorMessage' => esc_html__('Unable to load posts for this term.', 'elementor-taxonomy-loop'),
-    ]
-  );
-}
-add_action('elementor/frontend/after_register_scripts', 'elementor_taxonomy_loop_widgets_scripts');
-
-// AJAX: render a single term's Loop Grid for lazy-loaded stubs.
-function elementor_taxonomy_loop_ajax_render_term()
-{
-  if (!class_exists('\\Elementor\\Widget_Base') || !class_exists('\\ElementorPro\\Plugin')) {
-    wp_send_json_error(['message' => 'Elementor Pro is not active.'], 500);
-  }
-  if (!class_exists('\\Beenacle_Taxonomy_Loop')) {
-    $widget_file = ELEMENTOR_TAXONOMY_LOOP_PATH . 'widgets/taxonomy-loop.php';
-    if (!file_exists($widget_file)) {
-      wp_send_json_error(['message' => 'Widget unavailable.'], 500);
-    }
-    require_once($widget_file);
-  }
-  \Beenacle_Taxonomy_Loop::ajax_render_term();
-}
-add_action('wp_ajax_elementor_taxonomy_loop_render_term', 'elementor_taxonomy_loop_ajax_render_term');
-add_action('wp_ajax_nopriv_elementor_taxonomy_loop_render_term', 'elementor_taxonomy_loop_ajax_render_term');
+\Beenacle\ElementorTaxonomyLoop\Plugin::instance();

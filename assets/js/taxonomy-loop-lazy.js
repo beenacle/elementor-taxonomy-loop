@@ -1,121 +1,132 @@
+/**
+ * Fills in Taxonomy Loop terms that were deferred past first paint.
+ *
+ * Each stub asks the server for its own term as it scrolls into view. The request
+ * carries only the document ID, the widget's element ID and the term ID — every
+ * other setting is re-read server-side from the saved widget.
+ */
 (function () {
-  'use strict';
+	'use strict';
 
-  var STUB_SELECTOR = '[data-taxonomy-loop-stub="1"]';
-  var WIDGET_SELECTOR = '[data-taxonomy-loop-lazy="1"]';
+	var WIDGET_SELECTOR = '[data-taxonomy-loop-lazy="1"]';
+	var STUB_SELECTOR = '[data-taxonomy-loop-stub="1"]';
+	var ROOT_MARGIN = '200px 0px';
 
-  function getConfig(stub) {
-    var widget = stub.closest(WIDGET_SELECTOR);
-    if (!widget) {
-      return null;
-    }
-    var raw = widget.getAttribute('data-taxonomy-loop-config');
-    if (!raw) {
-      return null;
-    }
-    try {
-      return JSON.parse(raw);
-    } catch (err) {
-      return null;
-    }
-  }
+	var settings = window.ElementorTaxonomyLoop || {};
 
-  function renderError(stub) {
-    var l10n = window.ElementorTaxonomyLoopL10n || {};
-    var p = document.createElement('p');
-    p.className = 'error-message';
-    p.textContent = l10n.errorMessage || 'Unable to load posts for this term.';
-    stub.innerHTML = '';
-    stub.appendChild(p);
-    stub.removeAttribute('aria-busy');
-  }
+	function errorMessage() {
+		return ( settings.i18n && settings.i18n.error ) || 'Unable to load posts for this term.';
+	}
 
-  function triggerElementorHandlers(container) {
-    var handler = window.elementorFrontend && window.elementorFrontend.elementsHandler;
-    if (!handler || typeof handler.runReadyTrigger !== 'function') {
-      return;
-    }
-    var widgets = container.querySelectorAll('.elementor-widget');
-    for (var i = 0; i < widgets.length; i++) {
-      try {
-        handler.runReadyTrigger(widgets[i]);
-      } catch (e) {
-        // swallow — widget-level handler errors shouldn't break sibling mounts
-      }
-    }
-  }
+	function renderError( stub ) {
+		var paragraph = document.createElement( 'p' );
 
-  function loadStub(stub) {
-    var cfg = getConfig(stub);
-    var termId = stub.getAttribute('data-term-id');
-    if (!cfg || !termId) {
-      stub.innerHTML = '';
-      return;
-    }
+		paragraph.className = 'error-message';
+		paragraph.textContent = errorMessage();
 
-    var body = new FormData();
-    body.append('action', cfg.action);
-    body.append('nonce', cfg.nonce);
-    body.append('post_type', cfg.postType);
-    body.append('taxonomy', cfg.taxonomy);
-    body.append('term_id', termId);
-    body.append('skin', cfg.skin);
-    body.append('orderby', cfg.orderby);
-    body.append('order', cfg.order);
-    body.append('per_term', cfg.perTerm);
-    body.append('columns', cfg.columns);
-    body.append('cols_t', cfg.cols_t);
-    body.append('cols_m', cfg.cols_m);
-    body.append('equal', cfg.equal);
+		stub.innerHTML = '';
+		stub.appendChild( paragraph );
+		stub.removeAttribute( 'data-taxonomy-loop-stub' );
+		stub.removeAttribute( 'aria-busy' );
+	}
 
-    fetch(cfg.ajaxUrl, {
-      method: 'POST',
-      credentials: 'same-origin',
-      body: body
-    })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) {
-        if (data && data.success && data.data && typeof data.data.html === 'string') {
-          stub.innerHTML = data.data.html;
-          stub.removeAttribute('data-taxonomy-loop-stub');
-          stub.removeAttribute('aria-busy');
-          triggerElementorHandlers(stub);
-        } else {
-          renderError(stub);
-        }
-      })
-      .catch(function () { renderError(stub); });
-  }
+	/**
+	 * Boot the Elementor frontend handlers for widgets that were just injected.
+	 *
+	 * @param {Element} container Element holding the new markup.
+	 */
+	function initElementorWidgets( container ) {
+		var handler = window.elementorFrontend && window.elementorFrontend.elementsHandler;
 
-  function init() {
-    var stubs = document.querySelectorAll(STUB_SELECTOR);
-    if (!stubs.length) {
-      return;
-    }
+		if ( ! handler || 'function' !== typeof handler.runReadyTrigger ) {
+			return;
+		}
 
-    var io = new IntersectionObserver(function (entries) {
-      for (var j = 0; j < entries.length; j++) {
-        var entry = entries[j];
-        if (!entry.isIntersecting) {
-          continue;
-        }
-        io.unobserve(entry.target);
-        loadStub(entry.target);
-      }
-    }, {
-      root: null,
-      rootMargin: '200px 0px',
-      threshold: 0.01
-    });
+		var widgets = container.querySelectorAll( '.elementor-widget' );
 
-    for (var k = 0; k < stubs.length; k++) {
-      io.observe(stubs[k]);
-    }
-  }
+		for ( var i = 0; i < widgets.length; i++ ) {
+			try {
+				handler.runReadyTrigger( widgets[ i ] );
+			} catch ( error ) {
+				// A single widget handler failing must not stop its siblings mounting.
+			}
+		}
+	}
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+	function loadStub( stub ) {
+		var widget = stub.closest( WIDGET_SELECTOR );
+		var termId = stub.getAttribute( 'data-term-id' );
+
+		if ( ! widget || ! termId || ! settings.ajaxUrl || ! settings.action ) {
+			renderError( stub );
+			return;
+		}
+
+		var body = new URLSearchParams();
+
+		body.append( 'action', settings.action );
+		body.append( 'post_id', widget.getAttribute( 'data-post-id' ) || '' );
+		body.append( 'element_id', widget.getAttribute( 'data-element-id' ) || '' );
+		body.append( 'term_id', termId );
+
+		fetch( settings.ajaxUrl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+			body: body.toString()
+		} )
+			.then( function ( response ) {
+				return response.ok ? response.json() : null;
+			} )
+			.then( function ( payload ) {
+				if ( ! payload || ! payload.success || ! payload.data || 'string' !== typeof payload.data.html ) {
+					renderError( stub );
+					return;
+				}
+
+				stub.innerHTML = payload.data.html;
+				stub.removeAttribute( 'data-taxonomy-loop-stub' );
+				stub.removeAttribute( 'aria-busy' );
+				initElementorWidgets( stub );
+			} )
+			.catch( function () {
+				renderError( stub );
+			} );
+	}
+
+	function init() {
+		var stubs = document.querySelectorAll( STUB_SELECTOR );
+
+		if ( ! stubs.length ) {
+			return;
+		}
+
+		var observer = new IntersectionObserver(
+			function ( entries ) {
+				for ( var i = 0; i < entries.length; i++ ) {
+					if ( ! entries[ i ].isIntersecting ) {
+						continue;
+					}
+
+					observer.unobserve( entries[ i ].target );
+					loadStub( entries[ i ].target );
+				}
+			},
+			{
+				root: null,
+				rootMargin: ROOT_MARGIN,
+				threshold: 0.01
+			}
+		);
+
+		for ( var i = 0; i < stubs.length; i++ ) {
+			observer.observe( stubs[ i ] );
+		}
+	}
+
+	if ( 'loading' === document.readyState ) {
+		document.addEventListener( 'DOMContentLoaded', init );
+	} else {
+		init();
+	}
 })();

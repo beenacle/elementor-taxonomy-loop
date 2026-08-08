@@ -2,7 +2,14 @@
 * text=auto eol=lf
 
 # Exclude development-only paths from archive exports (GitHub "Download ZIP",
-# git archive, release zips) so installed plugin folders stay clean.
+# git archive) so installed plugin folders stay clean. The release zip uses
+# .distignore instead — keep the two lists in step.
 /.github              export-ignore
 /.gitattributes       export-ignore
 /.gitignore           export-ignore
+/.distignore          export-ignore
+/bin                  export-ignore
+/composer.json        export-ignore
+/phpcs.xml.dist       export-ignore
+/CONTRIBUTING.md      export-ignore
+/SECURITY.md          export-ignore

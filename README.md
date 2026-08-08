@@ -1,141 +1,389 @@
-# Elementor Taxonomy Loop Widget
+# Elementor Taxonomy Loop — group posts by category, tag or any taxonomy term
 
-An Elementor Pro add-on that renders a grouped loop: each taxonomy term is rendered as its own section, followed by a Loop Grid of that term's posts using a template you design in the Loop Builder.
+[![Latest release](https://img.shields.io/github/v/release/beenacle/elementor-taxonomy-loop?label=release)](https://github.com/beenacle/elementor-taxonomy-loop/releases)
+[![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+[![WordPress](https://img.shields.io/badge/WordPress-6.0%20–%207.0-21759b.svg)](https://wordpress.org/)
+[![Elementor Pro](https://img.shields.io/badge/Elementor%20Pro-3.25%20–%204.2-92003b.svg)](https://elementor.com/pro/)
+[![PHP](https://img.shields.io/badge/PHP-7.4%20–%208.4-777bb4.svg)](https://www.php.net/)
 
-Useful for pages like "Browse by category", "Shop by brand", or any layout where posts need to be presented bucketed by term instead of as a single flat list.
+**A free Elementor Pro add-on that renders one Loop Grid per taxonomy term.** Point it
+at a post type and a taxonomy, pick a Loop Builder template, and every category, tag,
+brand, or custom term gets its own heading followed by a grid of that term's posts —
+on a single page, from a single widget.
+
+It is the "posts grouped by category" layout that Elementor Pro's Loop Grid cannot
+produce on its own, without stacking one hand-configured Loop Grid per category and
+re-doing the work every time someone adds a term.
+
+---
+
+## Contents
+
+- [What it renders](#what-it-renders)
+- [How this differs from Elementor Pro's Loop Grid](#how-this-differs-from-elementor-pros-loop-grid)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [What people build with it](#what-people-build-with-it)
+- [Controls](#controls)
+- [Rendered markup](#rendered-markup)
+- [Styling and CSS hooks](#styling-and-css-hooks)
+- [Performance and lazy loading](#performance-and-lazy-loading)
+- [Developer reference](#developer-reference)
+- [FAQ](#faq)
+- [Troubleshooting](#troubleshooting)
+- [Compatibility](#compatibility)
+- [Contributing](#contributing)
+- [Changelog](#changelog)
+- [License](#license)
+
+## What it renders
+
+One widget, dropped once, produces a page like this — and keeps producing it as terms
+come and go:
+
+```
+┌─ Taxonomy Loop widget ──────────────────────────────────────────┐
+│                                                                 │
+│  Espresso Drinks                        ← term name (h1–h6)     │
+│  ────────────                           ← optional divider      │
+│  ┌────────┐ ┌────────┐ ┌────────┐       ← Loop Grid, your       │
+│  │ post   │ │ post   │ │ post   │         Loop Builder template │
+│  └────────┘ └────────┘ └────────┘                               │
+│                                                                 │
+│  Cold Brew                                                      │
+│  ─────────                                                      │
+│  ┌────────┐ ┌────────┐ ┌────────┐                               │
+│  │ post   │ │ post   │ │ post   │                               │
+│  └────────┘ └────────┘ └────────┘                               │
+│                                                                 │
+│  … one section per term, ordered and filtered as you configure  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+Each grid is a real Elementor Pro Loop Grid rendered from a template you design in the
+Loop Builder, so your card layout, dynamic tags and styling all work exactly as they do
+anywhere else.
+
+## How this differs from Elementor Pro's Loop Grid
+
+Elementor Pro 3.21 added a **taxonomy query** to the Loop Grid, and it is frequently
+mistaken for this. The two do opposite things:
+
+| | Elementor Pro Loop Grid | Elementor Taxonomy Loop |
+| --- | --- | --- |
+| **Loop items are** | Posts, *or* taxonomy terms | Posts, grouped under a heading per term |
+| **Taxonomy query renders** | A grid **of** categories | A grid **per** category |
+| **Grids per widget** | One | One per term, generated automatically |
+| **New term added** | Nothing changes, or one more card | A new section appears with its posts |
+| **Per-term heading** | Only as a loop item | Yes, with its own HTML tag and styling |
+| **To group by category today** | Stack N Loop Grids and filter each by hand | Drop one widget |
+
+If you want a page that shows a card for each category, use Elementor Pro's taxonomy
+query. If you want a page that shows *each category's posts under that category's name*,
+that's this plugin.
 
 ## Requirements
 
-- WordPress 6.0+
-- PHP 7.4+
-- Elementor 3.25+
-- Elementor Pro 3.25+ (hard dependency — the widget only registers when Pro is active)
+| | Minimum | Tested up to |
+| --- | --- | --- |
+| WordPress | 6.0 | 7.0 |
+| PHP | 7.4 | 8.4 |
+| Elementor | 3.25 | 4.2.2 |
+| Elementor Pro | 3.25 | 4.2.2 |
+
+Elementor Pro is a hard dependency — the widget renders Pro's Loop Grid, so it only
+registers when Pro is active. If a requirement is missing you get one clear admin
+notice explaining which.
 
 ## Installation
 
 ### From a GitHub release (recommended)
 
-1. Download the latest `elementor-taxonomy-loop.zip` from the [Releases](https://github.com/beenacle/elementor-taxonomy-loop/releases) page.
-2. In WordPress admin, go to **Plugins → Add New → Upload Plugin** and upload the zip.
+1. Download `elementor-taxonomy-loop.zip` from the [Releases](https://github.com/beenacle/elementor-taxonomy-loop/releases) page.
+2. In WordPress admin go to **Plugins → Add New → Upload Plugin** and upload the zip.
 3. Click **Install Now**, then **Activate**.
 
 ### From source
 
-Clone or download `main` into `wp-content/plugins/elementor-taxonomy-loop/` (the folder name must not include a commit hash — WordPress expects a stable slug).
+Clone into `wp-content/plugins/elementor-taxonomy-loop/`. The folder name matters —
+WordPress expects a stable slug, so don't leave a commit hash on the end of it.
+
+```bash
+git clone https://github.com/beenacle/elementor-taxonomy-loop.git \
+  wp-content/plugins/elementor-taxonomy-loop
+```
 
 ### Updates
 
-This plugin is not listed on wordpress.org, so core won't surface update notifications. Use [Git Updater](https://git-updater.com/) for auto-updates from GitHub, or re-upload each release manually.
+The plugin updates itself from GitHub Releases. New versions appear under
+**Dashboard → Updates** and install like any other plugin — no extra update manager,
+no account, no license key.
 
 ## Usage
 
-1. Open a page in the Elementor editor.
-2. Search for **Taxonomy Loop** in the widget panel and drop it onto the canvas.
-3. Pick the **Post Type**, **Taxonomy**, and a **Loop Skin** (create one inline if you don't have a template yet).
-4. Adjust filtering, ordering, and styling in the panel. See [Rendered markup](#rendered-markup) below for the exact HTML each term produces.
+1. Edit a page with Elementor.
+2. Search the widget panel for **Taxonomy Loop** (under the **Beenacle** category) and
+   drop it on the canvas.
+3. Pick your **Post Type** and **Taxonomy**. They have to be paired — `category` works
+   with `post`, `product_cat` with `product`, and so on.
+4. Choose a **Loop Skin**: an existing Loop Builder template, or create one inline with
+   the **+** button and design your card.
+5. Tune ordering, filtering and styling in the panel.
+
+That's it — the widget queries the terms itself, so new categories show up without
+anyone touching the page again.
+
+## What people build with it
+
+- **Browse-by-category landing pages** — every blog category with its latest posts
+  underneath, on one page.
+- **Shop by brand or product category** — one WooCommerce product grid per
+  `product_cat` or brand term, using your own product card template.
+- **Directory and listing sites** — group listings by city, region, service type, or
+  any custom taxonomy on a custom post type.
+- **Documentation and knowledge-base indexes** — every docs section with its articles.
+- **Course or resource libraries** — group lessons, downloads, or case studies by topic.
+- **Team, portfolio, or event pages** — grouped by department, project type, or track.
+
+Anything with a taxonomy works: built-in categories and tags, WooCommerce product
+categories, and custom taxonomies on custom post types.
 
 ## Controls
 
 ### Content
 
-| Control | Description |
+| Control | What it does |
 | --- | --- |
-| **Select Post Type** | Source post type (any public post type). |
-| **Select Taxonomy** | Taxonomy used to group posts. Must be registered for the selected post type — an error renders if the pair is invalid. |
-| **Select Loop Skin** | Loop Builder template used to render each term's posts. Can create/edit templates inline. |
-| **Hide Empty Terms** | Hide terms with no matching posts. |
-| **Show Divider** | Render an `<hr class="divider">` beneath each term title. |
-| **Include Terms (IDs)** | Comma/space-separated term IDs to include. |
-| **Exclude Terms (IDs)** | Comma/space-separated term IDs to exclude. |
-| **Order Terms By** | `name`, `id`, `slug`, `menu_order`, or `include`. |
-| **Order Direction** | Ascending or descending (applies to terms). |
-| **Order Posts By** | `date`, `title`, `ID`, `menu_order`, or `rand`. |
-| **Post Order Direction** | Ascending or descending (applies to posts within each term). |
-| **Posts Per Term** | Max posts per term (default `6`, `-1` for unlimited). |
-| **Lazy Load Terms** | Off by default. When on, only the first _N_ terms render server-side; the rest load via AJAX when they scroll into view. Editor/preview always renders everything eagerly. |
-| **Eager-Rendered Terms** | Number of terms rendered on first paint (default `2`, minimum `1`). Only shown when **Lazy Load Terms** is on. |
-| **Title Prefix / Suffix** | Plain-text strings wrapped around each term name in the rendered `<h2>`. |
+| **Select Post Type** | Source post type — any public post type, including custom ones. |
+| **Select Taxonomy** | Taxonomy to group by. Must be registered for the selected post type. |
+| **Select Loop Skin** | Loop Builder template used for each term's posts. Create or edit one inline. |
+| **Hide Empty Terms** | Skip terms that have no posts. |
+| **Show Divider** | Render an `<hr class="divider">` under each term title. |
+| **Include Terms (IDs)** | Comma- or space-separated term IDs to include. When set, Exclude is ignored (WordPress behaviour). |
+| **Exclude Terms (IDs)** | Comma- or space-separated term IDs to skip. |
+| **Max Terms** | Cap how many terms render. `0` means all — avoid that on taxonomies with hundreds of terms. |
+| **Order Terms By** | Name, ID, slug, menu order, post count, or include order. |
+| **Order Direction** | Ascending or descending, applied to terms. |
+| **Order Posts By** | Date, last modified, title, ID, menu order, or random. |
+| **Post Order Direction** | Ascending or descending, applied to posts inside each term. |
+| **Posts Per Term** | Max posts per term. Default `6`; `-1` for all. |
+| **Lazy Load Terms** | Off by default. On: only the first *N* terms render server-side, the rest load as they scroll into view. |
+| **Eager-Rendered Terms** | How many terms render on first paint. Default `2`, minimum `1`. |
+| **Title HTML Tag** | `h1`–`h6`, `div`, `p` or `span` for the term title. Default `h2`. |
+| **Title Prefix / Suffix** | Plain text wrapped around each term name. |
 
 ### Style
 
-- **Items Settings** — category gap, content gap, border, border radius, padding for the `.taxonomy-posts` wrapper.
-- **Category Styling** — border, border radius, padding, typography, color, and alignment for the term title block (`.term-content` / `.term-title`).
-- **Loop Controls** — per-breakpoint columns, column gap, row gap, equal-height toggle, and typography/color for the "No posts found" fallback.
-- **Divider Style** — width, height, color, top spacing, border radius, and alignment (only shown when **Show Divider** is on).
+- **Items Settings** — gap between terms, content gap, border, border radius and padding
+  for each `.taxonomy-posts` section.
+- **Term Title** — border, radius, padding, typography, colour and alignment for the
+  title block.
+- **Loop Controls** — columns per breakpoint, column gap, row gap, equal-height cards,
+  and typography/colour for the "No posts found" state.
+- **Divider Style** — width, height, colour, top spacing, radius and alignment. Only
+  shown when **Show Divider** is on.
 
 ## Rendered markup
 
-Each term produces:
-
 ```html
-<div class="taxonomy-posts taxonomy-posts-{TERM_ID}">
-  <div class="term-content">
-    <h2 class="term-title">{prefix}{term name}{suffix}</h2>
-    <hr class="divider" />               <!-- only if Show Divider is on -->
-  </div>
-  <div class="posts-list">
-    <!-- Elementor Loop Grid for this term's posts -->
+<div class="elementor-widget elementor-widget-taxonomy_loop">
+  <div class="e-taxonomy-loop">
+    <div class="taxonomy-posts taxonomy-posts-{TERM_ID}">
+      <div class="term-content">
+        <h2 class="term-title">{prefix}{term name}{suffix}</h2>
+        <hr class="divider" />          <!-- only when Show Divider is on -->
+      </div>
+      <div class="posts-list">
+        <!-- Elementor Pro Loop Grid for this term's posts -->
+      </div>
+    </div>
+    <!-- …one .taxonomy-posts block per term -->
   </div>
 </div>
 ```
 
-## Performance
+## Styling and CSS hooks
 
-The widget runs one bounded `WP_Query` per term (capped by **Posts Per Term**), letting WordPress's object cache short-circuit repeat renders. Setting **Posts Per Term** to `-1` removes that cap — avoid it on terms with very large post counts.
+Every style control writes to these classes, and so can your own CSS:
+
+| Class | Element |
+| --- | --- |
+| `.e-taxonomy-loop` | Widget wrapper. The flex column that spaces the terms apart. |
+| `.taxonomy-posts` | One term's section. Also carries `.taxonomy-posts-{TERM_ID}`. |
+| `.term-content` | The title block. |
+| `.term-title` | The term heading itself. |
+| `.divider` | The optional `<hr>`. |
+| `.posts-list` | Wrapper around the term's Loop Grid. |
+| `.not-found` | "No posts found for this term." |
+
+> **Upgrading from 1.x:** `.e-taxonomy-loop` is new, and it sits between Elementor's
+> widget wrapper and the term sections. The widget also stopped hanging its styles off
+> `.elementor-widget-container`, which Elementor's developer docs ask add-ons not to
+> rely on; with the **Optimized Markup** experiment enabled that element is no longer
+> rendered for this widget at all. Repoint custom CSS from
+> `.elementor-widget-taxonomy_loop .elementor-widget-container` to
+> `.elementor-widget-taxonomy_loop .e-taxonomy-loop`, and swap any direct-child
+> combinator that ran through the old structure for a descendant selector. Every other
+> class above is unchanged.
+
+## Performance and lazy loading
+
+The widget runs one bounded query per term, capped by **Posts Per Term**, fetching post
+IDs only. That keeps each query cheap and lets WordPress's object cache short-circuit
+repeat renders. Setting **Posts Per Term** to `-1` removes the cap — avoid it on terms
+with very large post counts.
+
+**Max Terms** is the other lever. A taxonomy with 400 terms means 400 queries and 400
+Loop Grids if you let it; cap the widget at what the page actually needs.
 
 ### Lazy loading
 
-Lazy loading is opt-in — flip **Lazy Load Terms** on to enable it. First paint then only queries and renders the first _N_ terms (default `2`). Remaining terms emit a stub that the bundled loader swaps for real content when it scrolls into view — one `admin-ajax.php` request per term, with a 200px pre-load margin.
+Turn **Lazy Load Terms** on and first paint only queries and renders the first *N* terms
+(default `2`). The rest emit a placeholder that the bundled loader swaps for real content
+when it scrolls into view — one request per term, with a 200px pre-load margin, using
+`IntersectionObserver`.
 
-Setting **Eager-Rendered Terms** to a value that covers your above-the-fold area keeps LCP fast; everything beyond loads on demand.
+Set **Eager-Rendered Terms** to cover your above-the-fold area and everything below
+loads on demand, which keeps LCP down on long category pages. The editor and preview
+always render everything eagerly so you can design the full layout.
 
-## Support
+The lazy request sends only the document ID, the widget's element ID and the term ID.
+Post type, taxonomy, template, ordering, post count and columns are all re-read
+server-side from the widget's saved settings, and the endpoint will only render terms
+that widget actually defers. That means it stays correct behind full-page caching, where
+a cached nonce would have gone stale and broken every deferred term.
 
-For support, feature requests, or bug reports, please visit [beenacle.com/contact-us](https://beenacle.com/contact-us/) or open an issue on this repo.
+## Developer reference
+
+Three filters, no forking required.
+
+```php
+// Narrow, extend, or re-sort the term query.
+add_filter( 'elementor_taxonomy_loop_terms_args', function ( $args, $widget ) {
+	$args['parent'] = 0; // Top-level terms only.
+	return $args;
+}, 10, 2 );
+
+// Shape the per-term post query — meta queries, post status, sticky handling…
+add_filter( 'elementor_taxonomy_loop_posts_args', function ( $args, $term_id, $widget ) {
+	$args['meta_key'] = 'featured';
+	return $args;
+}, 10, 3 );
+
+// Style handles preloaded so lazily-injected Loop Grids arrive styled.
+add_filter( 'elementor_taxonomy_loop_lazy_style_handles', function ( $handles ) {
+	$handles[] = 'my-loop-card-styles';
+	return $handles;
+}, 10, 1 );
+```
+
+Both query filters reset `fields` afterwards — the widget needs whole term objects and
+bare post IDs — so that one argument is not yours to change. Everything else is.
+
+Other integration points:
+
+- Widget type name: `taxonomy_loop` (stable — saved documents depend on it).
+- Stylesheet handle: `taxonomy-loop-style`. Script handle: `elementor-taxonomy-loop-lazy`.
+- AJAX action: `elementor_taxonomy_loop_render_term` (`wp_ajax_` and `wp_ajax_nopriv_`).
+- Namespace: `Beenacle\ElementorTaxonomyLoop\` autoloaded from `includes/`.
+
+## FAQ
+
+**Does this work without Elementor Pro?**
+No. The widget renders Elementor Pro's Loop Grid using a Loop Builder template, and both
+are Pro features. It won't register without Pro active.
+
+**Does it work with custom post types and custom taxonomies?**
+Yes — any public post type, and any taxonomy registered for it. That is the main use case.
+
+**Does it work with WooCommerce products?**
+Yes. Choose `product` as the post type and `product_cat` (or a brand taxonomy) as the
+taxonomy, and design your product card in the Loop Builder.
+
+**Can I show a different template per category?**
+Not from one widget — one Loop Skin applies to every term. Use two widgets with
+**Include Terms** set differently if you need two card designs on one page.
+
+**How do I show only some categories?**
+Put their term IDs in **Include Terms**, or exclude the ones you don't want. Term IDs are
+visible in the URL when you edit a term in the WordPress admin.
+
+**Why is my category missing?**
+Most often **Hide Empty Terms** is on and the term has no posts of the selected post
+type, or **Max Terms** is cutting the list short. Check the taxonomy is actually
+registered for that post type too.
+
+**Can the term title link to the category archive?**
+Not yet with a built-in control. The title is plain text so it stays safe to style; wrap
+it yourself with CSS/JS or open a [feature request](https://github.com/beenacle/elementor-taxonomy-loop/issues/new/choose).
+
+**Does it support pagination?**
+No. Each term shows up to **Posts Per Term** posts. Grouped-by-term pagination has no
+sensible single meaning — link to the term archive for the full list.
+
+**Is it translation-ready?**
+Yes. Text domain `elementor-taxonomy-loop`, with a POT file in `languages/`.
+
+**Does it slow pages down?**
+It runs one query per rendered term, so cost scales with term count. Use **Max Terms**
+and **Lazy Load Terms** on large taxonomies — see
+[Performance and lazy loading](#performance-and-lazy-loading).
+
+## Troubleshooting
+
+**"This plugin cannot be activated because required plugins are missing or inactive."**
+WordPress 6.5+ enforces the `Requires Plugins` header, and this plugin declares
+`elementor` and `elementor-pro`. Both must be installed *and* active, in folders named
+exactly `elementor` and `elementor-pro`. Uploading a zip named
+`elementor-pro-3.31.zip` creates a folder called `elementor-pro-3.31`, which does not
+satisfy the dependency — rename the folder to `elementor-pro`.
+
+**Styling broke after updating to 2.x.**
+Custom CSS aimed at `.elementor-widget-container` inside this widget no longer matches.
+See [Styling and CSS hooks](#styling-and-css-hooks).
+
+**"Unable to load posts for this term" on lazy-loaded terms.**
+The document has to be published for the public endpoint to render from it, and the term
+has to still be part of the widget's deferred set. If you changed **Include/Exclude
+Terms** or **Max Terms**, clear your page cache so visitors get fresh markup.
+
+**Lazy-loaded grids look unstyled.**
+Elementor Pro's grid stylesheet loads with the first grid on the page. The widget
+preloads it when lazy loading is on; if a custom card template pulls in its own
+stylesheet, add its handle via `elementor_taxonomy_loop_lazy_style_handles`.
+
+**I can't find the widget in the panel.**
+It moved to its own **Beenacle** category in 2.0.0. Searching "taxonomy", "category" or
+"loop" in the widget panel finds it either way.
+
+## Compatibility
+
+- **Optimized Markup** — supported. The widget implements `has_widget_inner_wrapper()`
+  the same way Elementor's own widgets do, so its wrapper follows the site setting and
+  stays in step with the common controls Elementor pairs with it. None of the widget's
+  own styling depends on that element either way.
+- **Full-page caching** — supported, including for lazy loading.
+- **Elementor Pro Loop Builder templates** — any template, with dynamic tags.
+- **Editor V4 / Atomic elements** — the widget is a classic Elementor widget and renders
+  alongside V4 content.
+
+## Contributing
+
+Bug reports and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for
+setup, coding standards and the release process. Security issues go through
+[SECURITY.md](SECURITY.md), not the public issue tracker.
 
 ## Changelog
 
-### 1.2.1
-* Localize the JS error string via `wp_localize_script`.
-* `error_log()` on `get_terms()` returning `WP_Error` when `WP_DEBUG` is on.
-* Housekeeping: `parse_term_ids` is now `private static`, comment typo fixed, unused `foreach` key dropped, dead fallback branches removed (Elementor's `Utils::generate_random_string()` and `IntersectionObserver` are both universally available on supported versions / browsers).
-
-### 1.2.0
-* Add lazy loading: when **Lazy Load Terms** is on, terms beyond the "Eager-Rendered Terms" count emit a stub that's filled in via AJAX when it scrolls into view. Default is **off** (opt-in) to avoid surprising existing installs; default eager count is `2`.
-* Ship a small vanilla JS loader (`assets/js/taxonomy-loop-lazy.js`) that uses `IntersectionObserver` with a 200px rootMargin to fetch each term as it scrolls into view. Browsers without `IntersectionObserver` fall back to loading every stub immediately instead of never.
-* Add a new `wp_ajax_elementor_taxonomy_loop_render_term` endpoint (with `nopriv` variant) that re-validates every field against the same whitelists used in `render()` (post type / taxonomy / `is_object_in_taxonomy()` / template = `elementor_library` / orderby / order / columns clamped 1–12 / posts per term capped at 100).
-* Editor and preview modes skip lazy loading so the full layout is always visible while designing.
-* Reuse the same render path for both eager and AJAX-rendered terms via a single `render_loop_grid_html()` helper — no drift between the two paths.
-
-### 1.1.1
-* Fetch post IDs per term with a bounded query so uneven distribution across terms can't leave later terms empty.
-* Drop dependency on Elementor Pro's internal `elementor-pro` style handle from `get_style_depends()`.
-* Use Elementor's random-string helper for the synthetic Loop Grid element ID instead of a predictable `loop-grid-{term_id}` string.
-* Render a clear error when the selected taxonomy isn't registered for the selected post type, instead of silently returning no terms.
-* README: correct minimum WordPress version (6.0) and document current controls, markup, and performance notes.
-
-### 1.1.0
-* Require Elementor Pro as a hard dependency; widget only registers when Pro is active, with an admin notice when it isn't.
-* Namespace-prefix the widget class (`Beenacle_Taxonomy_Loop`) to avoid global class collisions.
-* Load the plugin text domain for self-hosted installs and ship a `/languages` directory.
-* Gate debug `error_log()` calls behind `WP_DEBUG`.
-* Replace the per-term query loop with two consolidated queries (superseded in 1.1.1).
-* Rename the `show_empty` control to `hide_empty`; existing widget instances keep their saved toggle via a raw-data fallback.
-* Whitelist `orderby` / `order` values before passing to `WP_Query`.
-* Show a "Please select a valid loop template" message when the loop skin is empty or invalid instead of rendering an empty container.
-* Change the default `posts_per_term` from `-1` to `6` to avoid unbounded queries on new widgets.
-* Use semantic tokens (`left`/`center`/`right`) for the divider alignment control instead of raw CSS fragments.
-* Move the widget from Elementor's reserved `basic` category to `general`.
-* Normalize indentation and use `esc_html__()` throughout the widget file.
-* Update author name to Beenacle.
-
-### 1.0.0
-* Initial release
+See [CHANGELOG.md](CHANGELOG.md). Every release also carries its notes on the
+[Releases](https://github.com/beenacle/elementor-taxonomy-loop/releases) page.
 
 ## License
 
-GPL v2 or later — see [GNU GPL v2 or later](https://www.gnu.org/licenses/gpl-2.0.html).
+GPL v2 or later — see [LICENSE](LICENSE).
 
 ## Credits
 
-Developed by [Beenacle](https://beenacle.com).
+Built and maintained by [Beenacle](https://beenacle.com). For site-specific help or
+custom work, [get in touch](https://beenacle.com/contact-us/).

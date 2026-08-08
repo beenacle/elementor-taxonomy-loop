@@ -1,0 +1,27 @@
+# Paths excluded from the distributed plugin zip built by .github/workflows/release.yml.
+# rsync --exclude-from syntax: one pattern per line, '#' starts a comment.
+
+.git
+.github
+.gitattributes
+.gitignore
+.distignore
+.DS_Store
+
+# Tooling and development-only files.
+bin
+tests
+node_modules
+vendor
+composer.json
+composer.lock
+phpcs.xml.dist
+package.json
+package-lock.json
+
+# Contributor docs that only make sense on GitHub.
+CONTRIBUTING.md
+SECURITY.md
+
+*.log
+*.zip
