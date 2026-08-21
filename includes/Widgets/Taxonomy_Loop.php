@@ -160,10 +160,18 @@ class Taxonomy_Loop extends Widget_Base {
 	 * The lazy loader is only useful when lazy loading is switched on, so pages
 	 * that render every term server-side ship no JavaScript at all.
 	 *
+	 * Elementor also calls this on the registration ("type") instance, which is
+	 * constructed with no element data at all -- the editor preview does exactly
+	 * that on every load, via Widgets_Manager::enqueue_widgets_scripts(). Reading
+	 * settings there reaches Controls_Stack::sanitize_settings( null ) and fatals,
+	 * so the type instance always declares the script. That is what the editor
+	 * wants anyway: toggling Lazy Load in the panel cannot re-run
+	 * wp_enqueue_script(), so the handle has to already be on the preview page.
+	 *
 	 * @return string[]
 	 */
 	public function get_script_depends() {
-		if ( 'yes' !== $this->get_settings( 'lazy_load' ) ) {
+		if ( ! $this->is_type_instance() && 'yes' !== $this->get_settings( 'lazy_load' ) ) {
 			return array();
 		}
 

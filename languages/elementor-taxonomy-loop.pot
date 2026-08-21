@@ -25,11 +25,11 @@ msgstr ""
 msgid "%1$s requires %2$s version %3$s or greater. Please update %2$s."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:667 includes/Widgets/Taxonomy_Loop.php:888
+#: includes/Widgets/Taxonomy_Loop.php:675 includes/Widgets/Taxonomy_Loop.php:896
 msgid "Alignment"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:355 includes/Widgets/Taxonomy_Loop.php:386
+#: includes/Widgets/Taxonomy_Loop.php:363 includes/Widgets/Taxonomy_Loop.php:394
 msgid "Ascending"
 msgstr ""
 
@@ -37,51 +37,51 @@ msgstr ""
 msgid "Beenacle"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:568 includes/Widgets/Taxonomy_Loop.php:620 includes/Widgets/Taxonomy_Loop.php:876
+#: includes/Widgets/Taxonomy_Loop.php:576 includes/Widgets/Taxonomy_Loop.php:628 includes/Widgets/Taxonomy_Loop.php:884
 msgid "Border Radius"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:327
+#: includes/Widgets/Taxonomy_Loop.php:335
 msgid "Cap how many terms render. Set 0 for every term — avoid that on taxonomies with hundreds of terms."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:677 includes/Widgets/Taxonomy_Loop.php:898
+#: includes/Widgets/Taxonomy_Loop.php:685 includes/Widgets/Taxonomy_Loop.php:906
 msgid "Center"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:853
+#: includes/Widgets/Taxonomy_Loop.php:861
 msgid "Color"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:728
+#: includes/Widgets/Taxonomy_Loop.php:736
 msgid "Columns Gap"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:299
+#: includes/Widgets/Taxonomy_Loop.php:307
 msgid "Comma or space separated term IDs. When set, Exclude Terms is ignored."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:548
+#: includes/Widgets/Taxonomy_Loop.php:556
 msgid "Content Gap"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:369
+#: includes/Widgets/Taxonomy_Loop.php:377
 msgid "Date"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:356 includes/Widgets/Taxonomy_Loop.php:387
+#: includes/Widgets/Taxonomy_Loop.php:364 includes/Widgets/Taxonomy_Loop.php:395
 msgid "Descending"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:810
+#: includes/Widgets/Taxonomy_Loop.php:818
 msgid "Divider Style"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:421
+#: includes/Widgets/Taxonomy_Loop.php:429
 msgid "Eager-Rendered Terms"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1277
+#: includes/Widgets/Taxonomy_Loop.php:1285
 msgid "Elementor Pro's Loop Builder is not available."
 msgstr ""
 
@@ -89,59 +89,59 @@ msgstr ""
 msgid "Elementor Taxonomy Loop Widget"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:469
+#: includes/Widgets/Taxonomy_Loop.php:477
 msgid "Enter text to appear after the title"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:459
+#: includes/Widgets/Taxonomy_Loop.php:467
 msgid "Enter text to appear before the title"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:492
+#: includes/Widgets/Taxonomy_Loop.php:500
 msgid "Enter the ID of a Loop Builder template."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:762
+#: includes/Widgets/Taxonomy_Loop.php:770
 msgid "Equal height"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1309 includes/Widgets/Taxonomy_Loop.php:1323
+#: includes/Widgets/Taxonomy_Loop.php:1317 includes/Widgets/Taxonomy_Loop.php:1331
 msgid "Error generating loop grid."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:309
+#: includes/Widgets/Taxonomy_Loop.php:317
 msgid "Exclude Terms (IDs)"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:536
+#: includes/Widgets/Taxonomy_Loop.php:544
 msgid "Gap Between Terms"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:837
+#: includes/Widgets/Taxonomy_Loop.php:845
 msgid "Height"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:286
+#: includes/Widgets/Taxonomy_Loop.php:294
 msgid "Hide"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:271
+#: includes/Widgets/Taxonomy_Loop.php:279
 msgid "Hide Empty Terms"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:339 includes/Widgets/Taxonomy_Loop.php:372
+#: includes/Widgets/Taxonomy_Loop.php:347 includes/Widgets/Taxonomy_Loop.php:380
 msgid "ID"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:343
+#: includes/Widgets/Taxonomy_Loop.php:351
 msgid "Include Order"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:295
+#: includes/Widgets/Taxonomy_Loop.php:303
 msgid "Include Terms (IDs)"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1063
+#: includes/Widgets/Taxonomy_Loop.php:1071
 msgid "Invalid post type selected."
 msgstr ""
 
@@ -149,163 +149,163 @@ msgstr ""
 msgid "Invalid request."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1059
+#: includes/Widgets/Taxonomy_Loop.php:1067
 msgid "Invalid taxonomy selected."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:528
+#: includes/Widgets/Taxonomy_Loop.php:536
 msgid "Items Settings"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:370
+#: includes/Widgets/Taxonomy_Loop.php:378
 msgid "Last Modified"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:407
+#: includes/Widgets/Taxonomy_Loop.php:415
 msgid "Lazy Load Terms"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:673 includes/Widgets/Taxonomy_Loop.php:894
+#: includes/Widgets/Taxonomy_Loop.php:681 includes/Widgets/Taxonomy_Loop.php:902
 msgid "Left"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1260
+#: includes/Widgets/Taxonomy_Loop.php:1268
 msgid "Loading…"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:711
+#: includes/Widgets/Taxonomy_Loop.php:719
 msgid "Loop Columns"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:703
+#: includes/Widgets/Taxonomy_Loop.php:711
 msgid "Loop Controls"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:322
+#: includes/Widgets/Taxonomy_Loop.php:330
 msgid "Max Terms"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:341 includes/Widgets/Taxonomy_Loop.php:373
+#: includes/Widgets/Taxonomy_Loop.php:349 includes/Widgets/Taxonomy_Loop.php:381
 msgid "Menu Order"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:262
+#: includes/Widgets/Taxonomy_Loop.php:270
 msgid "Must be a taxonomy registered for the selected post type."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:338
+#: includes/Widgets/Taxonomy_Loop.php:346
 msgid "Name"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:274
+#: includes/Widgets/Taxonomy_Loop.php:282
 msgid "No"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1273
+#: includes/Widgets/Taxonomy_Loop.php:1281
 msgid "No posts found for this term."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:939 includes/Widgets/Taxonomy_Loop.php:945
+#: includes/Widgets/Taxonomy_Loop.php:947 includes/Widgets/Taxonomy_Loop.php:953
 msgid "No terms found for this taxonomy."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:781
+#: includes/Widgets/Taxonomy_Loop.php:789
 msgid "Not Found"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:790
+#: includes/Widgets/Taxonomy_Loop.php:798
 msgid "Not Found Color"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:426
+#: includes/Widgets/Taxonomy_Loop.php:434
 msgid "Number of terms rendered server-side on first paint. The rest are fetched lazily when visible."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:410 includes/Widgets/Taxonomy_Loop.php:764
+#: includes/Widgets/Taxonomy_Loop.php:418 includes/Widgets/Taxonomy_Loop.php:772
 msgid "Off"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:409 includes/Widgets/Taxonomy_Loop.php:765
+#: includes/Widgets/Taxonomy_Loop.php:417 includes/Widgets/Taxonomy_Loop.php:773
 msgid "On"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:351
+#: includes/Widgets/Taxonomy_Loop.php:359
 msgid "Order Direction"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:364
+#: includes/Widgets/Taxonomy_Loop.php:372
 msgid "Order Posts By"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:334
+#: includes/Widgets/Taxonomy_Loop.php:342
 msgid "Order Terms By"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:583 includes/Widgets/Taxonomy_Loop.php:635
+#: includes/Widgets/Taxonomy_Loop.php:591 includes/Widgets/Taxonomy_Loop.php:643
 msgid "Padding"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:1281
+#: includes/Widgets/Taxonomy_Loop.php:1289
 msgid "Please select a valid loop template."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:342
+#: includes/Widgets/Taxonomy_Loop.php:350
 msgid "Post Count"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:382
+#: includes/Widgets/Taxonomy_Loop.php:390
 msgid "Post Order Direction"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:395
+#: includes/Widgets/Taxonomy_Loop.php:403
 msgid "Posts Per Term"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:374
+#: includes/Widgets/Taxonomy_Loop.php:382
 msgid "Random"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:414
+#: includes/Widgets/Taxonomy_Loop.php:422
 msgid "Render terms beyond the eager count only when they scroll into view."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:681 includes/Widgets/Taxonomy_Loop.php:902
+#: includes/Widgets/Taxonomy_Loop.php:689 includes/Widgets/Taxonomy_Loop.php:910
 msgid "Right"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:745
+#: includes/Widgets/Taxonomy_Loop.php:753
 msgid "Row Gap"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:240
+#: includes/Widgets/Taxonomy_Loop.php:248
 msgid "Select Content"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:486
+#: includes/Widgets/Taxonomy_Loop.php:494
 msgid "Select Loop Skin"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:248
+#: includes/Widgets/Taxonomy_Loop.php:256
 msgid "Select Post Type"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:258
+#: includes/Widgets/Taxonomy_Loop.php:266
 msgid "Select Taxonomy"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:400
+#: includes/Widgets/Taxonomy_Loop.php:408
 msgid "Set -1 to show all posts."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:285
+#: includes/Widgets/Taxonomy_Loop.php:293
 msgid "Show"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:283
+#: includes/Widgets/Taxonomy_Loop.php:291
 msgid "Show Divider"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:340
+#: includes/Widgets/Taxonomy_Loop.php:348
 msgid "Slug"
 msgstr ""
 
@@ -313,12 +313,12 @@ msgstr ""
 msgid "Taxonomy Loop"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:604
+#: includes/Widgets/Taxonomy_Loop.php:612
 msgid "Term Title"
 msgstr ""
 
 #. translators: 1: taxonomy slug, 2: post type slug.
-#: includes/Widgets/Taxonomy_Loop.php:1070
+#: includes/Widgets/Taxonomy_Loop.php:1078
 msgid "The taxonomy \"%1$s\" is not registered for the \"%2$s\" post type. Pick a matching combination."
 msgstr ""
 
@@ -330,27 +330,27 @@ msgstr ""
 msgid "This term is not available."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:371 includes/Widgets/Taxonomy_Loop.php:647
+#: includes/Widgets/Taxonomy_Loop.php:379 includes/Widgets/Taxonomy_Loop.php:655
 msgid "Title"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:656
+#: includes/Widgets/Taxonomy_Loop.php:664
 msgid "Title Color"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:436
+#: includes/Widgets/Taxonomy_Loop.php:444
 msgid "Title HTML Tag"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:457
+#: includes/Widgets/Taxonomy_Loop.php:465
 msgid "Title Prefix"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:467
+#: includes/Widgets/Taxonomy_Loop.php:475
 msgid "Title Suffix"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:864
+#: includes/Widgets/Taxonomy_Loop.php:872
 msgid "Top Spacing"
 msgstr ""
 
@@ -362,10 +362,10 @@ msgstr ""
 msgid "Widget not found."
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:821
+#: includes/Widgets/Taxonomy_Loop.php:829
 msgid "Width"
 msgstr ""
 
-#: includes/Widgets/Taxonomy_Loop.php:273
+#: includes/Widgets/Taxonomy_Loop.php:281
 msgid "Yes"
 msgstr ""

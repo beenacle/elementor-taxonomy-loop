@@ -3,7 +3,7 @@
  * Plugin Name:       Elementor Taxonomy Loop Widget
  * Plugin URI:        https://github.com/beenacle/elementor-taxonomy-loop
  * Description:       Group posts by taxonomy term in Elementor Pro. Every category, tag, brand or custom term gets its own heading and its own Loop Grid, rendered from a template you design in the Loop Builder.
- * Version:           2.0.0
+ * Version:           2.0.1
  * Requires at least: 6.0
  * Tested up to:      7.0
  * Requires PHP:      7.4
@@ -16,7 +16,7 @@
  * Update URI:        https://github.com/beenacle/elementor-taxonomy-loop
  *
  * Requires Plugins:  elementor, elementor-pro
- * Elementor tested up to:     4.2.2
+ * Elementor tested up to:     4.2.3
  * Elementor Pro tested up to: 4.2.2
  *
  * @package Beenacle\ElementorTaxonomyLoop
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'ELEMENTOR_TAXONOMY_LOOP_VERSION', '2.0.0' );
+define( 'ELEMENTOR_TAXONOMY_LOOP_VERSION', '2.0.1' );
 define( 'ELEMENTOR_TAXONOMY_LOOP_FILE', __FILE__ );
 define( 'ELEMENTOR_TAXONOMY_LOOP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ELEMENTOR_TAXONOMY_LOOP_URL', plugins_url( '/', __FILE__ ) );

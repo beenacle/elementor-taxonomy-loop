@@ -3,6 +3,27 @@
 All notable changes to the Elementor Taxonomy Loop Widget are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## 2.0.1
+
+**Fixed**
+
+* **2.0.0 broke the Elementor editor site-wide.** Opening *any* page in Elementor
+  died with `Controls_Stack::sanitize_settings(): Argument #1 ($settings) must be of
+  type array, null given`, and the preview pane showed only "The preview could not be
+  loaded / error 500". 2.0.0's `get_script_depends()` read the widget's `lazy_load`
+  setting to decide whether to ship the lazy loader. Elementor also calls that method
+  on the widget's *registration* instance, which is constructed with no element data
+  at all -- `Widgets_Manager::enqueue_widgets_scripts()` does exactly that on every
+  editor preview load -- so the settings read hit `null` and fataled before any page
+  content rendered. The widget now declares the script unconditionally on the
+  registration instance, which is what the editor needs anyway: toggling **Lazy Load**
+  in the panel cannot re-run `wp_enqueue_script()`, so the handle has to already be on
+  the preview page. Rendered elements are unaffected -- pages with lazy loading off
+  still ship no JavaScript.
+
+  Only the editor was affected; published pages using the widget rendered normally
+  throughout.
+
 ## 2.0.0
 
 Compatibility release for current Elementor and Elementor Pro (tested up to 4.2.2),
