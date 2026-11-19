@@ -266,18 +266,68 @@ final class GitHubUpdater
         return $value !== '' ? $value : $default;
     }
 
-    /** Render a GitHub release body (Markdown) into safe HTML for the details modal. */
+    /**
+     * Render a GitHub release body (Markdown) into safe HTML for the details modal.
+     *
+     * Release notes hard-wrap their bullets, so a line that is neither a bullet nor a
+     * heading continues the block above it. GitHub's auto-generated "What's Changed" /
+     * "Full Changelog" footer only repeats the entry, so it is dropped.
+     */
     private function render_changelog(string $markdown): string
     {
-        $markdown = trim($markdown);
+        $markdown = preg_replace('/^#{1,6}\s*What\'s Changed\b.*\z/ims', '', $markdown) ?? $markdown;
+        $markdown = preg_replace('/^\s*\*\*Full Changelog\*\*.*$/im', '', $markdown) ?? $markdown;
+        $markdown = trim(str_replace("\r", '', $markdown));
         if ($markdown === '') {
             return 'See the release notes on GitHub.';
         }
-        $html = esc_html($markdown);
-        $html = preg_replace('/^#{1,6}\s*(.+)$/m', '<h4>$1</h4>', $html) ?? $html;
+
+        /** @var list<array{0:string,1:string}> $blocks [type, text] with type h|li|p */
+        $blocks = [];
+        $open   = false; // whether the last block still accepts continuation lines
+        foreach (explode("\n", $markdown) as $line) {
+            if (trim($line) === '') {
+                $open = false;
+            } elseif (preg_match('/^#{1,6}\s*(.+)$/', $line, $m)) {
+                $blocks[] = ['h', trim($m[1])];
+                $open     = false;
+            } elseif (preg_match('/^\s*[-*]\s+(.+)$/', $line, $m)) {
+                $blocks[] = ['li', trim($m[1])];
+                $open     = true;
+            } elseif ($open) {
+                $blocks[array_key_last($blocks)][1] .= ' ' . trim($line);
+            } else {
+                $blocks[] = ['p', trim($line)];
+                $open     = true;
+            }
+        }
+
+        $html = '';
+        $inList = false;
+        foreach ($blocks as [$type, $text]) {
+            if ($inList && $type !== 'li') {
+                $html  .= '</ul>';
+                $inList = false;
+            }
+            $text = $this->inline_markdown($text);
+            if ($type === 'li') {
+                $html  .= ($inList ? '' : '<ul>') . "<li>{$text}</li>";
+                $inList = true;
+            } elseif ($type === 'h') {
+                $html .= "<h4>{$text}</h4>";
+            } else {
+                $html .= "<p>{$text}</p>";
+            }
+        }
+        return $inList ? $html . '</ul>' : $html;
+    }
+
+    private function inline_markdown(string $text): string
+    {
+        $html = esc_html($text);
         $html = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $html) ?? $html;
-        $html = preg_replace('/^\s*[-*]\s+(.+)$/m', '<li>$1</li>', $html) ?? $html;
-        $html = preg_replace('/(?:<li>.*<\/li>\s*)+/s', '<ul>$0</ul>', $html) ?? $html;
-        return wpautop($html);
+        $html = preg_replace('/(?<![*\w])\*(?=\S)([^*]+?)(?<=\S)\*(?![*\w])/', '<em>$1</em>', $html) ?? $html;
+        $html = preg_replace('/`([^`]+)`/', '<code>$1</code>', $html) ?? $html;
+        return preg_replace('#\bhttps?://[^\s<]*[^\s<.,;:)]#', '<a href="$0" target="_blank" rel="noopener noreferrer">$0</a>', $html) ?? $html;
     }
 }
