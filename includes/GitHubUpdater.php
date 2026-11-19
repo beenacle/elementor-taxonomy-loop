@@ -275,8 +275,8 @@ final class GitHubUpdater
      */
     private function render_changelog(string $markdown): string
     {
-        $markdown = preg_replace('/^#{1,6}\s*What\'s Changed\b.*\z/ims', '', $markdown) ?? $markdown;
-        $markdown = preg_replace('/^\s*\*\*Full Changelog\*\*.*$/im', '', $markdown) ?? $markdown;
+        $markdown = preg_replace('/^#{1,6}\s*What\'s Changed\b.*\z/ms', '', $markdown) ?? $markdown;
+        $markdown = preg_replace('/^\s*\*\*Full Changelog\*\*.*$/m', '', $markdown) ?? $markdown;
         $markdown = trim(str_replace("\r", '', $markdown));
         if ($markdown === '') {
             return 'See the release notes on GitHub.';
