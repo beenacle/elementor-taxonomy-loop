@@ -16,7 +16,7 @@ name: Release
 #   * deps        = composer install --no-dev only if composer.json exists AND
 #                   vendor/ is not committed
 #   * notes       = the version's section from CHANGELOG.md, else readme.txt, else
-#                   GitHub's auto-generated notes
+#                   a pointer to the commit history
 #   * dist files  = .distignore if present, else a sensible default exclude set
 on:
   push:
@@ -170,5 +170,4 @@ jobs:
           name: v${{ steps.meta.outputs.version }}
           body_path: ${{ runner.temp }}/release-notes.md
           files: ${{ steps.meta.outputs.slug }}.zip
-          generate_release_notes: true
           make_latest: true
